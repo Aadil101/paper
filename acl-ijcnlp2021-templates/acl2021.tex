@@ -37,7 +37,6 @@
 
 \newcommand\BibTeX{B\textsc{ib}\TeX}
 
-% Not super happy with the title, any ideas?
 \title{BigGreen at LCP 2021: \\
 Lexical Complexity Prediction with Feature Engineering and Learning}
 
@@ -66,7 +65,6 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
 
 \section{Related Work}
 
-% I'm a bit confused on whether the stuff below should go in related work, or introduction?
 \begin{itemize}
   \item What previous papers showed (Mc Laughlin 1969, Dale and Chall 1948, Shardlow 2013, Paetzold and Specia 2016, Yimam et al. 2018).
   \item What 2016 task showed, overall findings of the authors, and shortcomings. 
@@ -83,8 +81,7 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
   \item Number of instances breakdown (table) of single token (train, trial, test) and multi token (train, trial, test) by subcorpus (bible, biomed, europarl).
   \item Complexity distribution breakdown (table) of single token (train, trial, test) and multi token (train, trial, test) by subcorpus (bible, biomed, europarl).
   \item Mention that whenever we perform cross-validation upon each train set, we always stratify by class and corpus.
-  \item Show actual samples that inspired us to pick particular features 
-  % obviously we can't show samples for all our features, but how about for some of the important ones? any of these below?:
+  \item Show actual samples that inspired us to pick particular features. 
   \begin{itemize}
     \item Eg. showing easy vs. difficult target words with respect to term frequency.
     \item Eg. showing easy vs. difficult target words with respect to it being proper noun or not.
@@ -109,20 +106,17 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
 \end{itemize}
 
 \subsection{Feature Engineering-Based System}
-% Do you agree/disagree with how I've categorized these features? not totally happy with how I've grouped them yet...
 
 \subsubsection{Feature Engineering}
 
 \begin{itemize}
   \item Mention that for the multi word-expression subtask, we compute the following features like for the single token subtask, but for the head and tail tokens independently.
-  % is this Zipf's law, if so should I mention it here?
   \item Mention that we also consider the log-transformed version of each feature described below, due numerous features in our feature set following power law distribution.
 \end{itemize}
 
 \paragraph{Lexical Features}
 
 \begin{itemize}
-  % do is_acronym and is_pronoun fall under lexical?
   \item Word length, Number of syllables, is\_acronym, is\_pronoun
 \end{itemize}
   
@@ -147,7 +141,6 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
 \paragraph{Syntactic Features}
 
 \begin{itemize}
-  % does POS tag of target word fall under syntactic?
   \item POS tag of target word, Depth of constituency parse tree, Depth of target word in constituency parse tree, Number of words at depth of target word
 \end{itemize}
 
@@ -230,9 +223,8 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
 \begin{itemize}
   \item Describe baseline systems.
   \item Show table of results (on trial and test sets) for all single token subtask models (for each of the feature selection techniques we tried) with MAE, Pearson, Spearman, and competition ranking.
-  \item Show table of results (on trial and test sets) for all multi word-expression subtask models (for both dissapointing and improved models) with MAE, Pearson, Spearman, and competition ranking.
+  \item Show table of results (on trial and test sets) for all multi word-expression subtask models (for both disappointing and improved models) with MAE, Pearson, Spearman, and competition ranking.
   \item Include baseline system performances in each table.
-  % Do you think I should include performance per subcorpus (bible, biomed, europarl), or any other performances?
 \end{itemize}
 
 \subsection{Analysis}
@@ -241,14 +233,13 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
 
 \begin{itemize}
   \item How each model performed in relation to another.
-  \item How the dissapointing multi word-expression model was designed, why it struggled, and what inspired our changes to it.
+  \item How the disappointing multi word-expression model was designed, why it struggled, and what inspired our changes to it.
   \item Why latest model struggles on trial set but succeeds on cross validation on the train set (and on the test set).
 \end{itemize}
 
 \subsubsection{Feature Contribution}
 
 \begin{itemize}
-  % is showing feature importances worth it? if so, how should I measure feature importance? 
   \item Show table of feature importance scores for the best performing model single token model.
   \item Discuss the most important features.
 \end{itemize}
@@ -267,7 +258,6 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
   \item Any avenues for improvement, including synthetic data generation to improve Pearson correlation on extremely difficult samples.
 \end{itemize}
 
-% Should I include an acknowledgement section?
 \section*{Acknowledgments}
 
 \bibliographystyle{acl_natbib}
