@@ -18,6 +18,8 @@
 \usepackage{times}
 \usepackage{latexsym}
 \usepackage{titlesec}
+\usepackage{amsmath}
+\usepackage{color,soul}
 \setcounter{secnumdepth}{5}
 \renewcommand{\UrlFont}{\ttfamily\small}
 
@@ -37,8 +39,16 @@
 
 \newcommand\BibTeX{B\textsc{ib}\TeX}
 
-\title{BigGreen at LCP 2021: \\
-Lexical Complexity Prediction with Feature Engineering and Learning}
+\makeatletter
+\renewcommand\paragraph{%
+    \@startsection{paragraph}{4}{0mm}%
+        {-\baselineskip}%
+        {.5\baselineskip}%
+        {\normalfont\normalsize\bfseries}}
+\makeatother
+
+\title{BigGreen at SemEval-2021 Task 1: \\
+Lexical Complexity Prediction with Assembly Models}
 
 \author{
   Aadil Islam\\
@@ -94,61 +104,73 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
 
 \begin{itemize}
   \item Briefly credit external corpora used to extract term frequency-based features:
-  \item English Gigaword corpus, Google Books Ngram Dataset (version 2) via PhraseFinder API, British National Corpus, SUBTLEXus.
+  \item English Gigaword corpus, Google Books Ngram Dataset (version 2) via PhraseFinder API \citep{phrasefinder}, British National Corpus (BNC), SUBTLEXus.
 \end{itemize}
 
-\section{BigGreen Systems}
+\section{BigGreen Systems \& Approaches}
 
-\begin{itemize}
-  \item Introduce the two models that we designed.
-  \item Explain that our final predictions for single token subtask and multi word-expression subtasks are ensembles of these predictions of these models
-  \item How we essentially treat the multi word-expression subtask as a special case of the single token subtask approach.
-\end{itemize}
+In this section, we overview the feature engineering-based system, specifically the features set, and the feature learning-based model, namely its training strategies. We also describe techniques used to ensemble their predictions for each subtask. Note that the fitted models for the single word subtask will then be harnessed for the multi-word expression subtask.
 
 \subsection{Feature Engineering-Based System}
 
 \subsubsection{Feature Engineering}
 
-\begin{itemize}
-  \item Mention that for the multi word-expression subtask, we compute the following features like for the single token subtask, but for the head and tail tokens independently.
-  \item Mention that we also consider the log-transformed version of each feature described below, due numerous features in our feature set following power law distribution.
-\end{itemize}
+The feature extraction procedure aims to capture a breadth of information pertaining to the target word and its context. We compute both the logged and unlogged version of each feature, the former serving to transform right-skewed distributions, which the majority of features appear to follow. For the multi-word expression subtask, features are extracted independently for the constituent head and tail words, with they and their \textit{sums} being included in the feature set.
 
 \paragraph{Lexical Features}
 
+These are features based on lexical information about the target word:
+
 \begin{itemize}
-  \item Word length, Number of syllables, is\_acronym, is\_pronoun
+  \item Word length: the length of the target word.
+  \item Number of syllables: the number of syllables in the target word, computed using the Syllables library\footnote{\url{https://github.com/prosegrinder/python-syllables}}.
+  \item Is acronym: whether the target word is a sequence of capital letters.
 \end{itemize}
   
 \paragraph{Semantic Features}
 
+These are features describing the meaning of the target word:
+
 \begin{itemize}
-  \item Number of hyponyms, Number of hypernyms, GloVe word embeddings, ELMo word embeddings, GloVe context embeddings, InferSent embeddings 
+  \item WordNet features: the number of hyponyms and hypernyms in WordNet \citep{Fellbaum:2005}.
+  \item GloVe word embeddings: we extract 300-dimension embeddings pre-trained on the Wikipedia-2014 \& Gigaword corpora \citep{pennington2014glove} for each lowercased target word. 
+  \item GloVe context embeddings: we obtain the average 300-dimension GloVe word embedding for each token in the given sentence.
+  \item ELMo word embeddings: we extract 1024-dimension embeddings pre-trained on the 1-Billion-Word-Benchmark corpus \citep{Peters:2018} for each target word. Observe that these are \textit{contextualized} embeddings, unlike the GloVe embeddings.
+  \item InferSent context embeddings: we obtain 4096-dimension InferSent embeddings \citep{conneau-EtAl:2017:EMNLP2017} for each sentence, built upon the aforementioned GloVe embeddings.
 \end{itemize}
 
 \paragraph{Phonetic Features}
 
+These features compute the likelihood that the sequence of consecutive soundable segments comprising a target word would show up in any given English word. Before extraction, we empirically estimate the ground truth transition probabilities between any two units (phonemes or characters) in the English language using the Gigaword corpus. 
+
 \begin{itemize}
-  \item Phoneme transition probability, Character transition probability
+  \item Phoneme transition probability: we consider the minimum, maximum, average, and standard deviation over the set of estimated transition probabilities of the target word's phoneme bigrams.
+  \item Character transition probability: an analogue to the extraction procedure for phoneme transition probability, but over \textit{character} bigrams.
 \end{itemize}
 
 \paragraph{Word Frequency and N-gram}
 
+These features are expressly included due to their expected  importance as predictors, as indicated by general takeaways from CWI 2016 (Malmasi and Zampieri, 2016). 
+
 \begin{itemize}
-  \item Gigaword TF, Gigaword TF Lemma, Gigaword TF-IDF, Gigaword Summed BPE TFs, Gigaword Number of OOV words, Gigaword Summed TF bigrams, Gigaword Summed TF trigrams, Gigaword Summed TF-IDF bigrams, Gigaword Summed TF-IDF trigrams, Google TF sum of bigrams, Google TF std of trigrams, Google TF head bigram, Google TF tail bigram, Google TF min bigram, Google TF max bigram, Google TF sum of trigrams, Google TF std of trigrams, Google TF head trigram, Google TF tail trigram, Google TF min trigram, Google TF max trigram, BNC TF, SUBTLEXus FREQcount, SUBTLEXus CDlow, SUBTLwf, SUBTLcd
+  \item \textbf{Gigaword}: this serves as the primary corpus from which we extract word frequency measurements pertaining to the target word. These includes term frequency (with and without lemmatizing the target word), the sum of the frequencies of each byte pair encoding (BPE), and the summed frequencies of bi-grams and tri-grams containing the target word. Additionally, these measurements are complemented with their corresponding IDF-based analogues, and the Out-Of-Vocabulary (OOV) words in the sentence are counted.
+  \item \textbf{Google Books Ngram Dataset}, \textbf{British National Corpus}, \& \textbf{SUBTLEXus}: these corpora are used to extract secondary word frequency, bi-gram, and tri-gram measurements, for the sake of breadth in our considered data.
 \end{itemize}
 
 \paragraph{Syntactic Features}
 
+These are features that assess the syntactic structure of the sentence in relation to the target word. Certain features rely on the construction of a constituency parse tree for the target word's context, which we obtain using a Stanford CoreNLP pipeline \citep{manning-EtAl:2014:P14-5}.
+
 \begin{itemize}
-  \item POS tag of target word, Depth of constituency parse tree, Depth of target word in constituency parse tree, Number of words at depth of target word
+  \item Part of speech (POS): the part of speech tag predicted using NLTK's generic $\text{pos\_tag}$ function \citep{Loper02nltk:the}.
+  \item Depth of parse tree: this measures the height of said constituency parse tree.
+  \item Depth of target word: this measures the distance between the target word and root node of the constituency parse tree.
+  \item Is proper noun/adjective: whether the target word is a proper noun/adjective, which we detect using capitalization of the first character.
 \end{itemize}
 
 \paragraph{Readability Metrics}
 
-\begin{itemize}
-  \item SMOGIndex, DaleChallIndex, etc.
-\end{itemize}
+These comprise a variety of readability tests that are applied on the target word's context, capturing low-level traits such as total word count, total syllable count, etc. Interestingly, certain readability tests count the \textit{difficult} words in a given sentence by assuming rules as to what makes a given word complex—the Dale-Chall readability formula \citep{10.2307/1473669} checks whether said word against a predetermined list of familiar words. This inspires us to conduct multiple readabililty tests via the Textstat library\footnote{\url{https://github.com/shivam5992/textstat}}, including Flesch-Kincaid grade level, Gunning Fog index, and SMOG index.
 
 \subsubsection{Feature Selection}
 
@@ -169,12 +191,6 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
 
 \begin{itemize}
   \item How we tried Forward Feature Selection (FFS) to select features greedily, as opposed to selecting all features.
-\end{itemize}
-
-\paragraph{Embedded Methods}
-
-\begin{itemize}
-  \item How we tried Lasso and ElasticNet regression with tuning of regularization parameters via grid search.
 \end{itemize}
 
 \subsubsection{Training}
@@ -218,7 +234,7 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
   \item Note that for both subtasks, we tune weights using cross validation upon each train set.
 \end{itemize}
 
-\section{Results}
+\section{Experiments}
 
 \begin{itemize}
   \item Describe baseline systems.
@@ -227,7 +243,7 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
   \item Include baseline system performances in each table.
 \end{itemize}
 
-\section{Analysis}
+\section{Analysis \& Discussion}
 
 \subsection{Performance}
 
@@ -253,12 +269,10 @@ Lexical Complexity Prediction with Feature Engineering and Learning}
   \item Whether these patterns surprising/expected in the context of predicting lexical complexity.
 \end{itemize}
 
-\section{Conclusion}
+\section{Conclusion \& Future Work}
 \begin{itemize}
   \item Any avenues for improvement, including synthetic data generation to improve Pearson correlation on extremely difficult samples.
 \end{itemize}
-
-\section*{Acknowledgments}
 
 \bibliographystyle{acl_natbib}
 \bibliography{anthology,acl2021}
