@@ -22,6 +22,9 @@
 \usepackage{color,soul}
 \setcounter{secnumdepth}{5}
 \renewcommand{\UrlFont}{\ttfamily\small}
+\usepackage{graphicx}
+\graphicspath{{./images/}}
+\usepackage[parfill]{parskip}
 
 % This is not strictly necessary, and may be commented out,
 % but it will improve the layout of the manuscript,
@@ -109,22 +112,22 @@ Lexical Complexity Prediction with Assembly Models}
 
 \section{BigGreen Systems \& Approaches}
 
-In this section, we overview the feature engineering-based system, specifically the features set, and the feature learning-based model, namely its training strategies. We also describe techniques used to ensemble their predictions for each subtask. Note that the fitted models for the single word subtask will then be harnessed for the multi-word expression subtask.
+In this section, we overview information fed to the feature engineering-based system, and the training strategies for the feature learning-based model. We also describe techniques for ensembling their predictions for each subtask. Note that the fitted models for the single word subtask are harnessed for the multi-word expression subtask.
 
-\subsection{Feature Engineering-Based System}
+\subsection{System based on Feature Engineering}
 
 \subsubsection{Feature Engineering}
 
-The feature extraction procedure aims to capture a breadth of information pertaining to the target word and its context. We compute both the logged and unlogged version of each feature, the former serving to transform right-skewed distributions, which the majority of features appear to follow. For the multi-word expression subtask, features are extracted independently for the constituent head and tail words, with they and their \textit{sums} being included in the feature set.
+The feature extraction procedure aims to capture a breadth of information pertaining to the target word and its context. We compute both logged and unlogged versions of each feature, in response to the majority of features following right-skewed distributions. For the multi-word expression subtask, features are extracted independently for the head and tail words, with they and their \textit{sums} being included in the feature set.
 
 \paragraph{Lexical Features}
 
 These are features based on lexical information about the target word:
 
 \begin{itemize}
-  \item Word length: the length of the target word.
-  \item Number of syllables: the number of syllables in the target word, computed using the Syllables library\footnote{\url{https://github.com/prosegrinder/python-syllables}}.
-  \item Is acronym: whether the target word is a sequence of capital letters.
+  \item \textbf{Word length}: the length of the target word.
+  \item \textbf{Number of syllables}: the number of syllables in the target word, computed using the Syllables library\footnote{\url{https://github.com/prosegrinder/python-syllables}}.
+  \item \textbf{Is acronym}: whether the target word is a sequence of capital letters.
 \end{itemize}
   
 \paragraph{Semantic Features}
@@ -132,40 +135,39 @@ These are features based on lexical information about the target word:
 These are features describing the meaning of the target word:
 
 \begin{itemize}
-  \item WordNet features: the number of hyponyms and hypernyms in WordNet \citep{Fellbaum:2005}.
-  \item GloVe word embeddings: we extract 300-dimension embeddings pre-trained on the Wikipedia-2014 \& Gigaword corpora \citep{pennington2014glove} for each lowercased target word. 
-  \item GloVe context embeddings: we obtain the average 300-dimension GloVe word embedding for each token in the given sentence.
-  \item ELMo word embeddings: we extract 1024-dimension embeddings pre-trained on the 1-Billion-Word-Benchmark corpus \citep{Peters:2018} for each target word. Observe that these are \textit{contextualized} embeddings, unlike the GloVe embeddings.
-  \item InferSent context embeddings: we obtain 4096-dimension InferSent embeddings \citep{conneau-EtAl:2017:EMNLP2017} for each sentence, built upon the aforementioned GloVe embeddings.
+  \item \textbf{WordNet features}: the number of hyponyms and hypernyms in WordNet \citep{Fellbaum:2005}.
+  \item \textbf{GloVe word embeddings}: we extract 300-dimension embeddings pre-trained on Wikipedia-2014 and Gigaword \citep{pennington2014glove} for each (lowercased) target word. 
+  \item \textbf{GloVe context embeddings}: we obtain the average 300-dimension GloVe word embedding over each token in the given sentence.
+  \item \textbf{ELMo word embeddings}: we extract 1024-dimension embeddings pre-trained on the 1-Billion-Word-Benchmark corpus \citep{Peters:2018} for each target word. Observe that these are \textit{contextualized} embeddings, unlike the GloVe embeddings.
+  \item \textbf{InferSent context embeddings}: we obtain 4096-dimension InferSent embeddings \citep{conneau-EtAl:2017:EMNLP2017} for each sentence.
 \end{itemize}
 
 \paragraph{Phonetic Features}
 
-These features compute the likelihood that the sequence of consecutive soundable segments comprising a target word would show up in any given English word. Before extraction, we empirically estimate the ground truth transition probabilities between any two units (phonemes or characters) in the English language using the Gigaword corpus. 
+These features compute the likelihood that consecutive soundable segments comprising a target word would show up in the English language. Before extraction, we empirically estimate the ground truth transition probabilities between any two units (phonemes or characters) in the English language using the Gigaword corpus. 
 
 \begin{itemize}
-  \item Phoneme transition probability: we consider the minimum, maximum, average, and standard deviation over the set of estimated transition probabilities of the target word's phoneme bigrams.
-  \item Character transition probability: an analogue to the extraction procedure for phoneme transition probability, but over \textit{character} bigrams.
+  \item \textbf{Phoneme transition probability}: we consider the minimum, maximum, average, and standard deviation over the set of estimated transition probabilities of the target word's phoneme bigrams.
+  \item \textbf{Character transition probability}: analogous to the extraction procedure for phoneme transition probability, but over \textit{character} bigrams.
 \end{itemize}
 
 \paragraph{Word Frequency and N-gram}
 
 These features are expressly included due to their expected  importance as predictors, as indicated by general takeaways from CWI 2016 (Malmasi and Zampieri, 2016). 
 
-\begin{itemize}
-  \item \textbf{Gigaword}: this serves as the primary corpus from which we extract word frequency measurements pertaining to the target word. These includes term frequency (with and without lemmatizing the target word), the sum of the frequencies of each byte pair encoding (BPE), and the summed frequencies of bi-grams and tri-grams containing the target word. Additionally, these measurements are complemented with their corresponding IDF-based analogues, and the Out-Of-Vocabulary (OOV) words in the sentence are counted.
-  \item \textbf{Google Books Ngram Dataset}, \textbf{British National Corpus}, \& \textbf{SUBTLEXus}: these corpora are used to extract secondary word frequency, bi-gram, and tri-gram measurements, for the sake of breadth in our considered data.
-\end{itemize}
+\textbf{Gigaword}: This serves as the primary corpus from which we extract word frequency measurements pertaining to the target word. These include term frequency (with and without lemmatizing the target word), the sum of the frequencies of each byte pair encoding (BPE), and the summed frequencies of bi-grams and tri-grams containing the target word. These features are complemented with their corresponding IDF-based analogues, and out-of-vocab (OOV) words in the sentence are counted.
+
+\textbf{Google Books Ngram Dataset}, \textbf{British National Corpus}, \& \textbf{SUBTLEXus}: These corpora are used to extract secondary word frequency, bi-gram, and tri-gram measurements.
 
 \paragraph{Syntactic Features}
 
 These are features that assess the syntactic structure of the sentence in relation to the target word. Certain features rely on the construction of a constituency parse tree for the target word's context, which we obtain using a Stanford CoreNLP pipeline \citep{manning-EtAl:2014:P14-5}.
 
 \begin{itemize}
-  \item Part of speech (POS): the part of speech tag predicted using NLTK's generic $\text{pos\_tag}$ function \citep{Loper02nltk:the}.
-  \item Depth of parse tree: this measures the height of said constituency parse tree.
-  \item Depth of target word: this measures the distance between the target word and root node of the constituency parse tree.
-  \item Is proper noun/adjective: whether the target word is a proper noun/adjective, which we detect using capitalization of the first character.
+  \item \textbf{Part of speech (POS)}: the part of speech tag predicted using NLTK's generic $\text{pos\_tag}$ function \citep{Loper02nltk:the}.
+  \item \textbf{Depth of parse tree}: this measures the height of said parse tree.
+  \item \textbf{Depth of target word}: this measures the distance between the target word and the parse tree's root node.
+  \item \textbf{Is proper}: whether the target word is a proper noun/adjective, which we detect using capitalization of the first character.
 \end{itemize}
 
 \paragraph{Readability Metrics}
@@ -174,33 +176,38 @@ These comprise a variety of readability tests that are applied on the target wor
 
 \subsubsection{Feature Selection}
 
-\begin{itemize}
-  \item Introduce how we trained models using multiple combinations of the following feature selection strategies.
-\end{itemize}
+For the single word subtask, we try selecting features using a combination of filter and wrapper methods. Our intention is to also leverage any successful techniques in the multi-word expression subtask, where we must select head-specific and tail-specific features.
 
 \paragraph{Filter Methods}
 
-\begin{itemize}
-  \item How we use Standard Scaler to normalize features, as per sklearn ML framework.
-  \item How we remove features that have constant/quasi-constant variance.
-  \item How we rank features based on mutual information with lexical complexity, and select the top-$N$ from features, where $N$ is corresponds to knee-of-curve.
-  \item How we experimented with removing features based on VIF.
-\end{itemize}
+\textbf{Variance}: Features are initially screened by the variance of their distribution, with those lower than a threshold of 0.01 being deemed constant or quasi-constant, and removed. 
+
+\textbf{Mutual Information}: Features are ranked by their mutual dependence with lexical complexity, and the top-$k$ features are selected. We tune $k$ by evaluating linear regression models fitted on the top-$k$ features, settling on $k=300$. See Figure \ref{fig:mi}.
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.4]{mi.png}
+  \caption{Performances of LR fitted on top-k features by mutual information (with 5-fold cross-validation).}
+  \label{fig:mi}
+\end{figure}
+
+\textbf{Variance Inflation Factor (VIF)}: VIF is computed for each feature to measure contributed multicollinearity. Note that we omit this particular filter method for the submitted model, for the sake of optimizing Pearson correlation.
 
 \paragraph{Wrapper Methods}
 
-\begin{itemize}
-  \item How we tried Forward Feature Selection (FFS) to select features greedily, as opposed to selecting all features.
-\end{itemize}
+\textbf{Forward Feature Selection (FFS)}: Beginning with an empty feature set, each subsequent iteration appends a new feature to the existing feature set that offers the best Pearson correlation. We end the algorithm when the last added feature simply fails to sufficiently improve Pearson correlation.
+
+\paragraph{Embedded Methods}
+
+\textbf{Lasso \& Elastic Nets}: We consider these linear models during the subsequent training phase, which use L1 and L1/L2 regularization, respectively, to shrink regression coefficients of lesser important features \textit{during} fitting. Lasso \citep{Tibshirani.x} is intruiging due to its ability to reduce the high dimensionality of our feature set (relative to training set size) during fitting. Elastic Net \citep{10.2307/3647580} may succeed particularly in the presence of highly intercorrelated features.
 
 \subsubsection{Training}
 
-\begin{itemize}
-  \item How we tried the said feature selection strategies through experiments on the train set, and found ensemble-based techniques regressors such as XGBoost to be the more successful algorithms, though simple linear regression performs reasonably well too.
-  \item How we fit two regressors, the first upon the full train set, and second on a train set with Very Easy, Easy, and Neutral samples reduced (aiming to better predict difficult and very difficult words due).
-\end{itemize}
+Prior to training, we standardize all features to have approximately zero mean and unit variance. For the single word subtask, we fit Linear Regression, Lasso Regression, Elastic Net Regression, Support Vector Regression (with linear kernel),  Support Vector Regression (with radial basis function kernel), K-Nearest Neighbors Regression, and XGBoost Regression models. 
 
-\subsection{Feature Learning and Transfer Learning-Based System}
+After identifying the best performing model in terms of Pearson correlation, we mitigate the imbalanced nature of the target variable, ie. the multitude of class-1,2,3 samples and relative lack of class-4,5 samples. We devise a sister version of our top-performing model, fit upon a \textit{reduced} training set containing fewer class-1,2,3 samples. We tune the exact percentages removed from each class by performing cross-validation on the training set.
+
+\subsection{System based on Feature Learning and Transfer Learning}
 \begin{itemize}
   \item Reiterate the potential influence of context on lexical complexity.
   \item What MT-DNN is and its advantages, namely the ability to initialize with BERT pretrained weights.
@@ -231,7 +238,7 @@ These comprise a variety of readability tests that are applied on the target wor
   \item For single token subtask, how we compute a weighted average of the both feature engineering-based model predictions (ie. predictions with and predictions without data reduction) and the feature learning-based model predictions.
   \item For multi token subtask, how we harness the feature engineering-based and feature learning-based models fitted for the single token subtask, to predict two sets of predicted complexities for the head and tail words.
   \item How we then compute a weighted average of the predicted complexities of the head and tail words, and the predicted complexities of the feature engineering-based model.
-  \item Note that for both subtasks, we tune weights using cross validation upon each train set.
+  \item Note that for both subtasks, we tune weights using cross-validation upon each train set.
 \end{itemize}
 
 \section{Experiments}
@@ -248,9 +255,10 @@ These comprise a variety of readability tests that are applied on the target wor
 \subsection{Performance}
 
 \begin{itemize}
+  \item How we tried the said feature selection strategies through experiments on the train set, and found ensemble-based techniques regressors such as XGBoost to be the more successful algorithms, though simple linear regression performs reasonably well too.
   \item How each model performed in relation to another.
   \item How the disappointing multi word-expression model was designed, why it struggled, and what inspired our changes to it.
-  \item Why latest model struggles on trial set but succeeds on cross validation on the train set (and on the test set).
+  \item Why latest model struggles on trial set but succeeds on cross-validation on the train set (and on the test set).
 \end{itemize}
 
 \subsection{Feature Contribution}
