@@ -208,38 +208,30 @@ Prior to training, we standardize all features to have approximately zero mean a
 After identifying the best performing model in terms of Pearson correlation, we mitigate the imbalanced nature of the target variable, ie. the multitude of class-1,2,3 samples and relative lack of class-4,5 samples. We devise a sister version of our top-performing model, fit upon a \textit{reduced} training set containing fewer class-1,2,3 samples. We tune the exact percentages removed from each class by performing cross-validation on the training set.
 
 \subsection{System based on Feature Learning and Transfer Learning}
-\begin{itemize}
-  \item Reiterate the potential influence of context on lexical complexity.
-  \item What MT-DNN is and its advantages, namely the ability to initialize with BERT pretrained weights.
-\end{itemize}
+
+Based on our prior observations for samples possessing the same target word but different contexts, we hypothesize that lexical complexity draws on the target word's relationship to its context. Our existing handcrafted feature set relies heavily upon target word-specific features, resulting in a cursory analysis of context encapsulating the target word. Beyond existing N-gram and syntactic features, we seek an alternative approach for feature learning using deep learning approaches.
 
 \subsubsection{Architecture}
-\begin{itemize}
-  \item How BERT works and its advantages.
-  \item Specify that we are using BERT cased base model, cased being preferable to uncased according to experiments.
-\end{itemize}
+
+LSTM-based approaches have found success in modeling the contexts of target words by sequentially reading tokens that precede the target word \citep{hartmanndossantos2018nilc}. This inspires us to try a different approach based on Transformers \citep{DBLP:journals/corr/VaswaniSPUJGKP17}, model architecures that notably process sentences as a \textit{whole} (not word-by-word) and use \textit{self attention} (a measurement of learned similarities between words in a sentence). BERT \citep{DBLP:journals/corr/abs-1810-04805}, is one such language representation model that is used for a variety of natual language understanding (NLU) tasks.
+
+Multi-Task Deep Neural Network (MT-DNN) proposed by \citet{liuetal2019multitask} offers state-of-the-art results for a variety of NLU tasks by incorporating the benefits of both multi-task learning and language model-pretraining. MT-DNN initializes its shared text encoding layers using a pre-trained BERT model, whose later layers we can finetune for the lexical complexity subtasks. 
+
+We initialize MT-DNN with the BERT base model (cased), and finetune the model for 5 epochs, leaving any hyperparameters to their defaults.
 
 \subsubsection{Input Layer}
-\begin{itemize}
-  \item For the single token subtask, how we pass sentence-target word pairs into MT-DNN model.
-  \item For the multi token subtask, how we analogously pass sentence-phrase pairs into the MT-DNN model.
-  \item How inputs are tokenized by BERT.
-\end{itemize}
+
+Data is fed to the model's input layer in \textit{PremiseAndOneHypothesis} format, where the premise and hypothesis are sentence and target word (or expression for the multi-word expression subtask), respectively. The data is then tokenized by a BERT Tokenizer, backed by the HuggingFace tokenizers library \citep{wolf_etal_2020_transformers}.
 
 \subsubsection{Output Layer}
-\begin{itemize}
-  \item What the MT-DNN model produces.
-  \item Explain choice to use predictions of the MT-DNN model as opposed to, say, the averaged BERT embeddings of the final layers.
-  \item What is BERT attention mechanism, and how one can interpret it.
-\end{itemize}
 
-\subsection{Ensembles}
-\begin{itemize}
-  \item For single token subtask, how we compute a weighted average of the both feature engineering-based model predictions (ie. predictions with and predictions without data reduction) and the feature learning-based model predictions.
-  \item For multi token subtask, how we harness the feature engineering-based and feature learning-based models fitted for the single token subtask, to predict two sets of predicted complexities for the head and tail words.
-  \item How we then compute a weighted average of the predicted complexities of the head and tail words, and the predicted complexities of the feature engineering-based model.
-  \item Note that for both subtasks, we tune weights using cross-validation upon each train set.
-\end{itemize}
+The finetuned model's output layer returns the predicted lexical complexity for a given target word/expression.\footnote{Note: We also considered extracting sentence embeddings, formed by summing the outputs of the final 4 layers of BERT, alas we leave this for future research.} In addition, we aim to examine the behaviors of BERT's 144 attention heads, as interpretation of attention maps may provide insight into relevant linguistic features learned by the model, as \citep{DBLP:journals/corr/abs-1906-04341} demonstate.
+
+\subsection{Ensembling}
+
+Firstly, to combine the 2 sets of predictions obtained from our best performing feature engineering-based regression model (from fitting on the 'full' and 'reduced' training sets, respectively), we default to using the 'full' predictions. We then tune a threshold, where predictions \textit{higher} than said threshold (ie. likely class-4,5 samples) being overwritten with their 'reduced' predictions. Finally, we compute a weighted average ensemble of said predictions with those of our MT-DNN model to obtain a final set of predictions for the single word subtask. 
+
+For the multi-word expression subtask, we harness the fitted feature engineering and feature learning-based models from the single word subtask by predicting the lexical complexities for the head and tail words each. We then compute a weighted average ensemble of said predicted complexities \textit{and} the predictions of the MT-DNN model previously trained on multi-word expressions.
 
 \section{Experiments}
 
