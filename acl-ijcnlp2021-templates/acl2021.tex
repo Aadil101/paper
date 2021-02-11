@@ -187,15 +187,14 @@ For the single word subtask, we try selecting features using a combination of fi
 \begin{figure}
   \centering
   \includegraphics[scale=0.4]{mi.png}
-  \caption{Performances of LR fitted on top-k features by mutual information (with 5-fold cross-validation).}
-  \label{fig:mi}
+  \caption{\label{fig:mi} Performances of LR fitted on top-k features by mutual information (with 5-fold cross-validation).}
 \end{figure}
 
 \textbf{Variance Inflation Factor (VIF)}: VIF is computed for each feature to measure contributed multicollinearity. Note that we omit this particular filter method for the submitted model, for the sake of optimizing Pearson correlation.
 
 \paragraph{Wrapper Methods}
 
-\textbf{Forward Feature Selection (FFS)}: Beginning with an empty feature set, each subsequent iteration appends a new feature to the existing feature set that offers the best Pearson correlation. We end the algorithm when the last added feature simply fails to sufficiently improve Pearson correlation.
+\textbf{Forward Feature Selection (FFS)}: Beginning with an empty feature set, each subsequent iteration appends a new feature to the existing feature set that offers the best Pearson correlation. We end the algorithm when the last added feature fails to sufficiently improve Pearson correlation.
 
 \paragraph{Embedded Methods}
 
@@ -213,7 +212,7 @@ Based on our prior observations for samples possessing the same target word but 
 
 \subsubsection{Architecture}
 
-LSTM-based approaches have found success in modeling the contexts of target words by sequentially reading tokens that precede the target word \citep{hartmanndossantos2018nilc}. This inspires us to try a different approach based on Transformers \citep{DBLP:journals/corr/VaswaniSPUJGKP17}, model architecures that notably process sentences as a \textit{whole} (not word-by-word) and use \textit{self attention} (a measurement of learned similarities between words in a sentence). BERT \citep{DBLP:journals/corr/abs-1810-04805}, is one such language representation model that is used for a variety of natual language understanding (NLU) tasks.
+LSTM-based approaches have found success in modeling the contexts of target words by sequentially reading tokens that precede the target word \citep{hartmanndossantos2018nilc}. This inspires us to try a different approach based on Transformers \citep{DBLP:journals/corr/VaswaniSPUJGKP17}, model architecures that notably process sentences as a whole (not word-by-word) and use \textit{self attention} (a measurement of learned similarities between words in a sentence). BERT \citep{DBLP:journals/corr/abs-1810-04805}, is one such language representation model that is used for a variety of natual language understanding (NLU) tasks.
 
 Multi-Task Deep Neural Network (MT-DNN) proposed by \citet{liuetal2019multitask} offers state-of-the-art results for a variety of NLU tasks by incorporating the benefits of both multi-task learning and language model-pretraining. MT-DNN initializes its shared text encoding layers using a pre-trained BERT model, whose later layers we can finetune for the lexical complexity subtasks. 
 
@@ -225,22 +224,59 @@ Data is fed to the model's input layer in \textit{PremiseAndOneHypothesis} forma
 
 \subsubsection{Output Layer}
 
-The finetuned model's output layer returns the predicted lexical complexity for a given target word/expression.\footnote{Note: We also considered extracting sentence embeddings, formed by summing the outputs of the final 4 layers of BERT, alas we leave this for future research.} In addition, we aim to examine the behaviors of BERT's 144 attention heads, as interpretation of attention maps may provide insight into relevant linguistic features learned by the model, as \citep{DBLP:journals/corr/abs-1906-04341} demonstate.
+The finetuned model's output layer returns the predicted lexical complexity for a given target word/expression. In addition, we aim to examine the behaviors of BERT's 144 attention heads, as interpretation of attention maps may provide insight into relevant linguistic features learned by the model, as \citep{DBLP:journals/corr/abs-1906-04341} demonstate.
 
 \subsection{Ensembling}
 
-Firstly, to combine the 2 sets of predictions obtained from our best performing feature engineering-based regression model (from fitting on the 'full' and 'reduced' training sets, respectively), we default to using the 'full' predictions. We then tune a threshold, where predictions \textit{higher} than said threshold (ie. likely class-4,5 samples) being overwritten with their 'reduced' predictions. Finally, we compute a weighted average ensemble of said predictions with those of our MT-DNN model to obtain a final set of predictions for the single word subtask. 
+To combine the 2 sets of predictions obtained from our best performing feature engineering-based regression model (from fitting on the \textit{full} and \textit{reduced} training sets, respectively), we default to using the \textit{full} predictions. We then tune a threshold, where predictions higher than said threshold (ie. likely class-4,5 samples) being overwritten with their \textit{reduced} predictions. Lastly, we compute a weighted average ensemble of said predictions with those of our MT-DNN model to obtain a final set of predictions for the single word subtask. 
 
-For the multi-word expression subtask, we harness the fitted feature engineering and feature learning-based models from the single word subtask by predicting the lexical complexities for the head and tail words each. We then compute a weighted average ensemble of said predicted complexities \textit{and} the predictions of the MT-DNN model previously trained on multi-word expressions.
+For the multi-word expression subtask, we harness the fitted feature engineering and feature learning-based models from the single word subtask by predicting the lexical complexities for the head and tail words each. We then compute a weighted average ensemble of said predicted complexities \textit{and} the predictions of the MT-DNN model trained on multi-word expressions.
 
-\section{Experiments}
+\section{Results}
 
-\begin{itemize}
-  \item Describe baseline systems.
-  \item Show table of results (on trial and test sets) for all single token subtask models (for each of the feature selection techniques we tried) with MAE, Pearson, Spearman, and competition ranking.
-  \item Show table of results (on trial and test sets) for all multi word-expression subtask models (for both disappointing and improved models) with MAE, Pearson, Spearman, and competition ranking.
-  \item Include baseline system performances in each table.
-\end{itemize}
+\begin{table*}[t]
+  \centering
+  \begin{tabular}{lcccc}
+  \hline \textbf{Model} & \textbf{Pearson} & \textbf{Rank} & \textbf{Spearman} & \textbf{MAE} \\ \hline
+  Linear Regression	& 0.7347 & - &	0.6993 &	0.0669 \\
+  FFS	& 0.7313 & - &	0.7053 & 0.0671 \\
+  Lasso (alpha=0.0001) &	0.7352 & - &	0.7042 & 	0.0667 \\
+  ElasticNet (alpha=0.001) &	0.7396 & - &	0.7122 &	0.0662 \\
+  SVM (kernel=linear, C=0.001) &	0.7254 & - &	0.6970 &	0.0678 \\
+  SVM (kernel=rbf, C=1, gamma=0.001) &	0.7392 & - &	0.7066 &	0.0668 \\
+  KNN (k=20, weights=distance) &	0.7156 & -	& 0.6914 &	0.0710 \\
+  \hline
+  XGBoost (\textit{full}) &	0.7589 & - &	0.7220 &	0.0645 \\
+  XGBoost (\textit{reduced}) &	0.7456 & - &	0.7157 &	0.0751 \\
+  XGBoost (\textit{full}+\textit{reduced}) & 0.7576 & - & 0.7220 & 0.0646 \\
+  MT-DNN & 0.7484 & -	& 0.7044 & 0.0664 \\
+  Ensemble (submission) & 0.7749 & 8th & 0.7294 & 0.0629 \\
+  \hline
+  Best competition results & 0.7886 & & 0.7425 & 0.0609 \\ 
+  \hline
+  \end{tabular}
+  \caption{\label{single-word-results-table} Test set results for single word subtask. }
+\end{table*}
+
+\begin{table*}[t]
+  \centering
+  \begin{tabular}{lcccc}
+  \hline \textbf{Model} & \textbf{Pearson} & \textbf{Rank} & \textbf{Spearman} & \textbf{MAE} \\ \hline
+  Head predicted complexity & 0.7164 & - & 0.7305 & 0.1281 \\
+  Tail predicted complexity & 0.7188 & - & 0.7416 & 0.1306 \\
+  MT-DNN & 0.7890 & - & 0.7649 & 0.0766 \\
+  Ensemble (post-competition) & 0.8290 & *14th & 0.8120 & 0.0857 \\
+  Ensemble (submission) & 0.7898 & 25th & 0.7769 & 0.0903 \\
+  \hline
+  Best competition results & 0.8612 & &  0.8548 & 0.0616 \\ 
+  \hline
+  \end{tabular}
+  \caption{\label{multi-word-results-table} Test set results for multi-word expression subtask. (* projection)}
+\end{table*}
+
+In this section, we present the performances of BigGreen's systems. For feature selection, we find success from both selecting the top-300 features by mutual information \textit{and} removing constant/quasi-constant features. The pruned feature set is passed to both our wrapper/embedded methods and a variety of regressors for model comparison, where for the single word subtask we find an XGBoost regressor \citep{DBLP:journals/corr/ChenG16} (with hyperparameters tuned using grid search) to consistently outperform the rest.
+
+We ensemble the predictions of our two sister XGBoost regressors and MT-DNN model accordingly, yielding a final set of predictions for the single word subtask. Performances are reported in Table \ref{single-word-results-table}, in which we rank a respectable 8th (top 15\%). For the multi-word expression subtask, performances are reported in Table \ref{multi-word-results-table}. Our submitted predictions do not match nor perform as well as our post-competition predictions because our latest approach differs from that during the competition. We \textit{previously} used a procedure nearly identical to that of the single word subtask: (1) filter methods for feature selection, (2) XGBoost for regression, (3) ensembling with MT-DNN. We hypothesize that an issue with said procedure is the significantly fewer training samples available in the multi-word expression subtask. This inspired us to incorporate the predictive capabilities of our single word subtask models, yielding our current post-competition approach and its superior results.
 
 \section{Analysis \& Discussion}
 
@@ -271,7 +307,7 @@ For the multi-word expression subtask, we harness the fitted feature engineering
 
 \section{Conclusion \& Future Work}
 \begin{itemize}
-  \item Any avenues for improvement, including synthetic data generation to improve Pearson correlation on extremely difficult samples.
+  \item Any avenues for improvement, including synthetic data generation to improve Pearson correlation on extremely difficult samples, one may also considered extracting sentence embeddings, formed by summing the outputs of the final 4 layers of BERT, alas we leave this for future research.
 \end{itemize}
 
 \bibliographystyle{acl_natbib}
