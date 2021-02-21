@@ -112,13 +112,13 @@ Lexical Complexity Prediction with Assembly Models}
 
 \section{BigGreen Systems \& Approaches}
 
-In this section, we overview information fed to the feature engineering-based system, and the training strategies for the feature learning-based model. We also describe techniques for ensembling their predictions for each subtask. Note that the fitted models for the single word subtask are harnessed for the multi-word expression subtask.
+In this section, we overview information fed to the feature engineering-based system, and the training strategies for the feature learning-based model. We also describe techniques for ensembling their predictions for each subtask. Note that the fitted models for the single word subtask are then harnessed for the multi-word expression subtask.
 
-\subsection{System based on Feature Engineering}
+\subsection{Feature Engineering-based System}
 
-\subsubsection{Feature Engineering}
+\subsubsection{Feature Extraction}
 
-The feature extraction procedure aims to capture a breadth of information pertaining to the target word and its context. We compute both logged and unlogged versions of each feature, in response to the majority of features following right-skewed distributions. For the multi-word expression subtask, features are extracted independently for the head and tail words, with they and their \textit{sums} being included in the feature set.
+The feature extraction procedure aims to capture a breadth of information pertaining to the target word and its context. The majority of features appear to follow heavily right-skewed distributions, perhaps due to governance of Zipf's law over the multitude of word frequency-based features we consider. This prompts us to consider both the logged and unlogged versions of each feature. For the multi-word expression subtask, features are extracted independently for the head and tail words, with they and their \textit{sums} being included in the feature set.
 
 \paragraph{Lexical Features}
 
@@ -165,14 +165,14 @@ These are features that assess the syntactic structure of the sentence in relati
 
 \begin{itemize}
   \item \textbf{Part of speech (POS)}: the part of speech tag predicted using NLTK's generic $\text{pos\_tag}$ function \citep{Loper02nltk:the}.
-  \item \textbf{Depth of parse tree}: this measures the height of said parse tree.
+  \item \textbf{Depth of parse tree}: this measures the maximum depth of the parse tree.
   \item \textbf{Depth of target word}: this measures the distance between the target word and the parse tree's root node.
   \item \textbf{Is proper}: whether the target word is a proper noun/adjective, which we detect using capitalization of the first character.
 \end{itemize}
 
 \paragraph{Readability Metrics}
 
-These comprise a variety of readability tests that are applied on the target word's context, capturing low-level traits such as total word count, total syllable count, etc. Interestingly, certain readability tests count the \textit{difficult} words in a given sentence by assuming rules as to what makes a given word complex—the Dale-Chall readability formula \citep{10.2307/1473669} checks whether said word against a predetermined list of familiar words. This inspires us to conduct multiple readabililty tests via the Textstat library\footnote{\url{https://github.com/shivam5992/textstat}}, including Flesch-Kincaid grade level, Gunning Fog index, and SMOG index.
+These comprise a variety of readability tests that are applied on the target word's context, capturing low-level traits such as total word count, total syllable count, etc. Interestingly, certain readability tests count the \textit{difficult} words in a given sentence by assuming rules as to what makes a given word complex—the Dale-Chall readability formula \citep{10.2307/1473669} checks a given word against a predetermined list of familiar words. This inspires us to conduct multiple readabililty tests via the Textstat library\footnote{\url{https://github.com/shivam5992/textstat}}, including Flesch-Kincaid grade level, Gunning Fog index, and SMOG index.
 
 \subsubsection{Feature Selection}
 
@@ -212,11 +212,11 @@ Based on our prior observations for samples possessing the same target word but 
 
 \subsubsection{Architecture}
 
-LSTM-based approaches have found success in modeling the contexts of target words by sequentially reading tokens that precede the target word \citep{hartmanndossantos2018nilc}. This inspires us to try a different approach based on Transformers \citep{DBLP:journals/corr/VaswaniSPUJGKP17}, model architecures that notably process sentences as a whole (not word-by-word) and use \textit{self attention} (a measurement of learned similarities between words in a sentence). BERT \citep{DBLP:journals/corr/abs-1810-04805}, is one such language representation model that is used for a variety of natual language understanding (NLU) tasks.
+LSTM-based approaches have been used successfully to model the contexts of target words in previous works \citep{hartmanndossantos2018nilc}. However, an issue with a standalone LSTM is that it is capable of reading tokens of an input sentence sequentially in a single direction. This inspires us to use an Transformer-based approach \citep{DBLP:journals/corr/VaswaniSPUJGKP17}, model architecures capable of processing sentences as a whole (instead of word-by-word) by applying \textit{attention} mechanisms over input sentences. Attention weights are useful as they can be interpreted as a measurement of learned relationships between words in a given sentence. BERT \citep{DBLP:journals/corr/abs-1810-04805} is one such language representation model that can be used for a variety of natual language understanding (NLU) tasks.
 
-Multi-Task Deep Neural Network (MT-DNN) proposed by \citet{liuetal2019multitask} offers state-of-the-art results for a variety of NLU tasks by incorporating the benefits of both multi-task learning and language model-pretraining. MT-DNN initializes its shared text encoding layers using a pre-trained BERT model, whose later layers we can finetune for the lexical complexity subtasks. 
+Multi-Task Deep Neural Network (MT-DNN) proposed by \citet{liuetal2019multitask} offers state-of-the-art results for a variety of NLU tasks by incorporating the benefits of both multi-task learning and language model-pretraining. MT-DNN initializes its shared text encoding layers using a pre-trained BERT model, whose later layers we intend to fine-tune for the lexical complexity subtasks.
 
-We initialize MT-DNN with the BERT base model (cased), and finetune the model for 5 epochs, leaving any hyperparameters to their defaults.
+We initialize MT-DNN with the BERT base model (cased), and fine-tune the model for 5 epochs, leaving any hyperparameters to their defaults.
 
 \subsubsection{Input Layer}
 
@@ -224,13 +224,13 @@ Data is fed to the model's input layer in \textit{PremiseAndOneHypothesis} forma
 
 \subsubsection{Output Layer}
 
-The finetuned model's output layer returns the predicted lexical complexity for a given target word/expression. In addition, we aim to examine the behaviors of BERT's 144 attention heads, as interpretation of attention maps may provide insight into relevant linguistic features learned by the model, as \citep{DBLP:journals/corr/abs-1906-04341} demonstate.
+The fine-tuned model's output layer returns the predicted lexical complexity for a given target word/expression. In addition, we aim to examine the behaviors of BERT's 144 attention heads, as interpretation of attention maps may provide insight into relevant linguistic features learned by the model, as \citep{DBLP:journals/corr/abs-1906-04341} demonstate.
 
 \subsection{Ensembling}
 
-To combine the 2 sets of predictions obtained from our best performing feature engineering-based regression model (from fitting on the \textit{full} and \textit{reduced} training sets, respectively), we default to using the \textit{full} predictions. We then tune a threshold, where predictions higher than said threshold (ie. likely class-4,5 samples) being overwritten with their \textit{reduced} predictions. Lastly, we compute a weighted average ensemble of said predictions with those of our MT-DNN model to obtain a final set of predictions for the single word subtask. 
+To combine the 2 sets of predictions obtained from our best performing feature engineering-based regression model (from fitting on the \textit{full} and \textit{reduced} training sets, respectively), we default to using the \textit{full} predictions. We then tune a threshold, where predictions higher than the threshold (ie. likely of class-4,5 samples) being overwritten with their \textit{reduced} predictions. Lastly, we compute a weighted average ensemble of these predictions with those of our MT-DNN model to obtain a final set of predictions for the single word subtask. 
 
-For the multi-word expression subtask, we harness the fitted feature engineering and feature learning-based models from the single word subtask by predicting the lexical complexities for the head and tail words each. We then compute a weighted average ensemble of said predicted complexities \textit{and} the predictions of the MT-DNN model trained on multi-word expressions.
+For the multi-word expression subtask, we harness the fitted feature engineering and feature learning-based models from the single word subtask by predicting the lexical complexities for the head and tail words each. We then compute a weighted average ensemble of these predicted complexities \textit{and} the predictions of the MT-DNN model trained on multi-word expressions.
 
 \section{Results}
 
@@ -239,7 +239,7 @@ For the multi-word expression subtask, we harness the fitted feature engineering
   \begin{tabular}{lcccc}
   \hline \textbf{Model} & \textbf{Pearson} & \textbf{Rank} & \textbf{Spearman} & \textbf{MAE} \\ \hline
   Linear Regression	& 0.7347 & - &	0.6993 &	0.0669 \\
-  FFS	& 0.7313 & - &	0.7053 & 0.0671 \\
+  Forward Feature Selection (FFS)	& 0.7313 & - &	0.7053 & 0.0671 \\
   Lasso (alpha=0.0001) &	0.7352 & - &	0.7042 & 	0.0667 \\
   ElasticNet (alpha=0.001) &	0.7396 & - &	0.7122 &	0.0662 \\
   SVM (kernel=linear, C=0.001) &	0.7254 & - &	0.6970 &	0.0678 \\
@@ -250,12 +250,12 @@ For the multi-word expression subtask, we harness the fitted feature engineering
   XGBoost (\textit{reduced}) &	0.7456 & - &	0.7157 &	0.0751 \\
   XGBoost (\textit{full}+\textit{reduced}) & 0.7576 & - & 0.7220 & 0.0646 \\
   MT-DNN & 0.7484 & -	& 0.7044 & 0.0664 \\
-  Ensemble (submission) & 0.7749 & 8th & 0.7294 & 0.0629 \\
+  Ensemble (submission) & 0.7749 & 8 of 54 & 0.7294 & 0.0629 \\
   \hline
   Best competition results & 0.7886 & & 0.7425 & 0.0609 \\ 
   \hline
   \end{tabular}
-  \caption{\label{single-word-results-table} Test set results for single word subtask. }
+  \caption{\label{tab:single-word-results} Test set results for single word subtask. }
 \end{table*}
 
 \begin{table*}[t]
@@ -265,45 +265,64 @@ For the multi-word expression subtask, we harness the fitted feature engineering
   Head predicted complexity & 0.7164 & - & 0.7305 & 0.1281 \\
   Tail predicted complexity & 0.7188 & - & 0.7416 & 0.1306 \\
   MT-DNN & 0.7890 & - & 0.7649 & 0.0766 \\
-  Ensemble (post-competition) & 0.8290 & *14th & 0.8120 & 0.0857 \\
-  Ensemble (submission) & 0.7898 & 25th & 0.7769 & 0.0903 \\
+  Ensemble (post-competition) & 0.8290 & *14 of 37 & 0.8120 & 0.0857 \\
+  Ensemble (submission) & 0.7898 & 25 of 37 & 0.7769 & 0.0903 \\
   \hline
   Best competition results & 0.8612 & &  0.8548 & 0.0616 \\ 
   \hline
   \end{tabular}
-  \caption{\label{multi-word-results-table} Test set results for multi-word expression subtask. (* projection)}
+  \caption{\label{tab:multi-word-results} Test set results for multi-word expression subtask. (* projection)}
 \end{table*}
 
-In this section, we present the performances of BigGreen's systems. For feature selection, we find success from both selecting the top-300 features by mutual information \textit{and} removing constant/quasi-constant features. The pruned feature set is passed to both our wrapper/embedded methods and a variety of regressors for model comparison, where for the single word subtask we find an XGBoost regressor \citep{DBLP:journals/corr/ChenG16} (with hyperparameters tuned using grid search) to consistently outperform the rest.
+Here, we present the performances of BigGreen's systems on test sets for the single and multi-word expression subtasks. See Tables \ref{tab:single-word-results} and \ref{tab:multi-word-results}.
 
-We ensemble the predictions of our two sister XGBoost regressors and MT-DNN model accordingly, yielding a final set of predictions for the single word subtask. Performances are reported in Table \ref{single-word-results-table}, in which we rank a respectable 8th (top 15\%). For the multi-word expression subtask, performances are reported in Table \ref{multi-word-results-table}. Our submitted predictions do not match nor perform as well as our post-competition predictions because our latest approach differs from that during the competition. We \textit{previously} used a procedure nearly identical to that of the single word subtask: (1) filter methods for feature selection, (2) XGBoost for regression, (3) ensembling with MT-DNN. We hypothesize that an issue with said procedure is the significantly fewer training samples available in the multi-word expression subtask. This inspired us to incorporate the predictive capabilities of our single word subtask models, yielding our current post-competition approach and its superior results.
-
-\section{Analysis \& Discussion}
+\section{Analysis}
 
 \subsection{Performance}
 
-\begin{itemize}
-  \item How we tried the said feature selection strategies through experiments on the train set, and found ensemble-based techniques regressors such as XGBoost to be the more successful algorithms, though simple linear regression performs reasonably well too.
-  \item How each model performed in relation to another.
-  \item How the disappointing multi word-expression model was designed, why it struggled, and what inspired our changes to it.
-  \item Why latest model struggles on trial set but succeeds on cross-validation on the train set (and on the test set).
-\end{itemize}
+For feature selection, we find success in selecting the top-300 features by mutual information \textit{and} removing constant/quasi-constant features. The pruned feature set is then passed to both our wrapper/embedded methods and a variety of regressors for model comparison, where we find an XGBoost regressor \citep{DBLP:journals/corr/ChenG16} (with hyperparameters tuned using grid search) to excel consistently for the single word subtask.
+
+We ensemble the predictions of our two sister XGBoost regressors and MT-DNN model accordingly, yielding a final set of predictions for the single word subtask. Performances are reported in Table \ref{tab:single-word-results}, where we rank in the top 15\% by Pearson. For the multi-word expression subtask, performances are reported in Table \ref{tab:multi-word-results}. Note that for this subtask our submitted predictions differ from our post-competition predictions. We \textit{previously} used a training procedure resembling that for the single word subtask: (1) filter methods for feature selection, (2) XGBoost for regression, and (3) ensembling with MT-DNN. We hypothesize that the fewer number of training samples available for multi-word expression subtask contributed to the previous procedure's lackluster performance. This inspired us to incorporate the predictive capabilities of our fitted single word subtask models, yielding superior post-competition results.
 
 \subsection{Feature Contribution}
 
-\begin{itemize}
-  \item Show table of feature importance scores for the best performing model single token model.
-  \item Discuss the most important features.
-\end{itemize}
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.45]{xgboost_feature_importances.png}
+  \captionsetup{justification=centering}
+  \caption{\label{fig:xgboost_feature_importance} Feature importances for XGBoost(\textit{full}).}
+\end{figure}
+
+In total we consider 110 features, in addition to our embedding-based features and $\log$ transformed features. We inspect the estimated feature importance scores produced by the XGBoost(\textit{full}) model to find that term frequency-based features (eg. unigrams, bigrams, trigrams) are of overwhelming importance (see Figure \ref{fig:xgboost_feature_importance}). This inspires concern over whether the MT-DNN model too relies on term frequencies to make \textit{its} predictions, and if not, the linguistic features it may have learned upon fine-tuning. Note that of the remaining features with non-zero importances, the majority seem to be dimensions of one of target word-based semantic features (ie. GloVe or ELMo embeddings).
 
 \subsection{BERT Attention}
 
-\begin{itemize}
-  \item (If we have room) Show heatmap of attention head importances (attention weights averaged across all samples).
-  \item For 2-3 of most important attention heads, show the attention maps for actual samples.
-  \item What (if any) patterns do the most important attention heads demonstrate.
-  \item Whether these patterns surprising/expected in the context of predicting lexical complexity.
-\end{itemize}
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.375]{head_correlations_tf.png}
+  \captionsetup{justification=centering}
+  \caption{\label{fig:head_correlations_tf} Attention head correlation between word frequency and total attention received by word, averaged across 100 random test set samples.}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.3]{head_3-9_tf_avg.png}
+  \captionsetup{justification=centering}
+  \caption{\label{fig:head_3-9_tf_avg} Word frequency vs. average head 3-9 attention weight directed to words of a random sample.}
+\end{figure}
+
+\begin{figure}
+  \centering
+  \includegraphics[scale=0.45]{head_3-9.png}
+  \captionsetup{justification=centering}
+  \caption{\label{fig:head_3-9} Head 3-9 attention map for a random sample.}
+\end{figure}
+
+The attention maps of Transformers have in previous works been assessed to demonstrate linguistic phenomena potentially learned by specialized attention heads \citep{1905-09418, 1906-04341} and to measure the relative contribution of each attention head to making task predictions \citep{1905-09418, 1905-10650}. We thereby hope to provide intuition for the MT-DNN model by extracting attention maps from its underlying fine-tuned BERT architecture. For each sample in the single word test set, we extract an attention map from each of the BERT base model's 144 attention heads (ie. 12 heads per 12 layers).
+
+Based on the precedence given to term frequency features by our XGBoost(\textit{full}) model, we hypothesize that for certain attention heads, the degree to which tokens are attended to varies relative to the token's rarity in the lexicon. This follows the findings of \citealp{1905-09418}, who identify heads in which lesser frequent tokens are attended to uniformly by the majority of sentence tokens. 
+
+To test our hypothesis, we estimate for each attention head the Pearson correlation between word frequency and the average attention given to each word in the sentence.\footnote{We compute attention given to a \textit{word} as the sum of attention given to its constituent \textit{byte pair encodings} (BPEs). We use the Google Book Ngram Dataset to extract term frequencies from, though any large corpora would suffice.} As illustrated in Figures \ref{fig:head_correlations_tf} and \ref{fig:head_3-9_tf_avg}, we find multiple attention heads specializing in direct attention towards the most \textit{or} least frequent words (depending on sign of the correlation). Vertical, striated patterns like that in Figure \ref{fig:head_3-9} emerge as a result of attention originating from a spectrum of tokens. Reasoning for the variation across each vertical stripe remains inconclusive, however. The findings are intruiging nonetheless, as they affirm the fundamental relevancy of term frequency to lexical complexity prediction, as our intuition may tell us.
 
 \section{Conclusion \& Future Work}
 \begin{itemize}
