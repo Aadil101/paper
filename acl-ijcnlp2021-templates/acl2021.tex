@@ -78,7 +78,7 @@ The recent CWI shared task at SemEval-2016 \citep{paetzoldspecia:2016:SemEval1} 
 
 Teams are asked to submit predictions for unlabeled test sets, which are given for each of two subtasks: for predicting on single word and multi word expressions (MWEs), respectively, on a continuous range of 0-1 (1 denoting very difficult). For each subtask, we present a machine learning-based approach that harnesses two forms of models whose predictions are lately fused together: a traditional feature engineering-based regressor trained on handcrafted features, and a feature learning-based deep neural network model founded on BERT \citep{DBLP:journals/corr/abs-1810-04805}. 
 
-In Sections 2 and 3, we overview related work that inspires our experiments and describe the data used to train our models. For the feature engineering-based model, Section 4 conveys six categories of linguistic features experimented with, in addition to feature selection techniques; for the feature learning-based model, we describe its training procedure here. Sections 5 and 6 show how our approaches performed in competition, as well as analysis on worked and what did not. All of our code is made available on GitHub.\footnote{Insert link here.}
+In Sections 2 and 3, we overview related work that inspires our experiments and describe the data used to train \texttt{BigGreen}'s models. For the feature engineering-based model, Section 4 conveys six categories of linguistic features experimented with, in addition to feature selection techniques; for the feature learning-based model, we describe its training procedure here. Sections 5 and 6 show how our approaches performed in competition, as well as analysis on worked and what did not. All of our code is made available on GitHub.\footnote{Insert link here.}
 
 \section{Related Work}
 
@@ -171,18 +171,18 @@ These features compute the likelihood that consecutive soundable segments compri
 
 \paragraph{Word Frequency and N-gram}
 
-These features are expressly included due to their expected importance as predictors, as indicated by takeaways from CWI 2016 (Malmasi and Zampieri, 2016).
+These features are expressly included due to their expected importance as predictors, as indicated by \citet{zampieriEtAl:2017:NLPTEA}.
 
 Gigaword-5 serves as the primary corpus from which we extract word frequency measurements pertaining to the target word. These include term frequency (for both lemmatized and unlemmatized target word), the summed frequency of the target word's byte pair encodings (BPEs), and the summed frequencies of bigrams and trigrams containing the target word. We complement these features with their IDF-based analogues, and count the number of out-of-vocab words in a sentence.
 
-Lastly, we incorporate the GBND-2, BNC, and SUBTLEXus corpora by extracting secondary word frequency, bigram, and trigram measures. 
+We also incorporate the GBND-2, BNC, and SUBTLEXus corpora by extracting secondary word frequency, bigram, and trigram measures. 
 
 \paragraph{Syntactic Features}
 
 These are features that assess the syntactic structure of the sentence in relation to the target word. Certain features rely on the construction of a constituency parse tree for the target word's context, which we obtain using a Stanford CoreNLP pipeline \citep{manning-EtAl:2014:P14-5}.
 
 \begin{itemize}
-  \item \textbf{Part of speech (POS)}: the part of speech tag predicted using NLTK's $\text{pos\_tag}$ function \citep{Loper02nltk:the}.
+  \item \textbf{Part of speech (POS)}: the part of speech tag predicted using the NLTK Python library's \texttt{pos\_tag} function \citep{Loper02nltk:the}.
   \item \textbf{Depth of parse tree}: this measures the height of the parse tree.
   \item \textbf{Depth of target word}: this measures the distance in number of edges between the target word and the parse tree's root node.
   \item \textbf{Is proper}: whether the target word is a proper noun/adjective, detected using capitalization.
@@ -292,7 +292,7 @@ For the MWE subtask, we harness the fitted feature engineering and feature learn
   \caption{\label{tab:multi-word-results} Test set results for the MWE subtask. (* projection)}
 \end{table*}
 
-Here, we present the performances of BigGreen's systems on test sets for the single and MWE subtasks. See Tables \ref{tab:single-word-results} and \ref{tab:multi-word-results}.
+Here, we present the performances of \texttt{BigGreen}'s systems on test sets for the single and MWE subtasks. See Tables \ref{tab:single-word-results} and \ref{tab:multi-word-results}.
 
 \section{Analysis}
 
@@ -340,9 +340,13 @@ The attention maps of Transformers have in previous works been assessed to demon
 
 Based on the precedence given to term frequency features by the XGBoost(\textit{full}) model, we hypothesize that for certain attention heads, the degree to which tokens are attended to varies relative to the token's rarity in the lexicon. This follows the findings of \citealp{1905-09418}, who identify heads in which lesser frequent tokens are attended to semi-uniformly by a majority of sentence tokens. 
 
-To test our hypothesis, we estimate for each attention head the Pearson correlation between word frequency and the average attention given to each word in the context.\footnote{We compute attention given to a \textit{word} as the sum of attention given to its constituent byte pair encodings (BPEs). We use the GBND-2 corpus to extract word frequencies from, though any large corpora would suffice.} As illustrated in Figures \ref{fig:head_correlations_tf} and \ref{fig:head_3-9_tf_avg}, we find multiple attention heads that specialize in direct attention towards the most \textit{or} least frequent words (depending on sign of the correlation). Vertical, striated patterns like that in Figure \ref{fig:head_3-9} emerge as a result of attention originating from a spectrum of tokens. The findings seem to affirm the fundamental relevancy of word frequency to lexical complexity prediction, corroborating our intuition.
+To test our hypothesis, we estimate for each attention head the Pearson correlation between word frequency and the average attention given to each word in the context.\footnote{We compute attention given to a \textit{word} as the sum of attention given to its constituent byte pair encodings (BPEs). We use the GBND-2 corpus to extract word frequencies from, though any large corpora would suffice.} As illustrated in Figures \ref{fig:head_correlations_tf} and \ref{fig:head_3-9_tf_avg}, we find multiple attention heads appearing to specialize at directing attention towards the most \textit{or} least frequent words (depending on sign of the correlation). Vertical, striated patterns like that in Figure \ref{fig:head_3-9} emerge as a result of attention originating from a spectrum of tokens. The findings seem to affirm the fundamental relevancy of word frequency to lexical complexity prediction, corroborating our intuitions.
 
-\section{Conclusion \& Future Work}
+\section{Conclusion}
+
+In this paper, we report inspirations for the systems submitted by \texttt{BigGreen} to LCP SharedTask 2021 for their single word and MWE subtasks. We achieve  reasonable performance for the single word subtask by applying simple ensemble methods upon feature engineering-based and feature learning-based models. We see vast potential in future deep learning approaches, while acknowledging the need for strong word frequency-based handcrafted features for the time being. We surpass our submitted results for the MWE subtask, notably through the utilization of the predictive capability of our single word subtask model, and the treatment of MWE complexity as compositional with respect to its tokens.
+
+Avenues for improvement include better data aggregation, as the relative lack of class-4,5 samples hurts Pearson correlation across samples of especially extreme complexity. For instance, an approach may involve synthetic data generation using SMOGN \citep{pmlr-v74-branco17a}. \citet{shardlow2020complex} acknowledge a reader's familiarity with a genre may affect their perceived complexity of a word, however the CompLex dataset lacks details on each annotator's expertise or background, which may offer valuable new insights. Future studies may consider extracting multidimensional embeddings from the later layers of their deep learning models, potentially feeding these embeddings into their feature engineering-based models.
 
 \begin{itemize}
   \item Any avenues for improvement.
