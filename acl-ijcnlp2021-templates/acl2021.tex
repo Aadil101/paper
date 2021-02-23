@@ -68,7 +68,7 @@ Lexical Complexity Prediction with Assembly Models}
 \maketitle
 
 \begin{abstract}
-  This paper describes systems submitted by team BigGreen to LCP 2021. We assemble a feature engineering-based model that extracts word frequency and other linguistic features relevant to a target expression, with a deep neural network model founded on BERT that contextualizes a target expression using its sentence. Our handcrafted features comprise a breadth of lexical, semantic, syntactic, and novel phonological measures, whereas visualizations of BERT attention maps offer insight into potential features that Transformers models may learn when fine-tuned for lexical complexity prediction. Our ensembled predictions score reasonably well for the single word subtask, and we demonstrate how it may be harnessed to perform well on the multi word expression subtask too.
+  This paper describes systems submitted by team BigGreen to LCP 2021. We assemble a feature engineering-based model with a deep neural network model founded on BERT. The latter model contextualizes a target expression given its sentence. While BERT is a strong model overall, the feature engineering-based model helps in extreme cases, namely with very difficult words. Our handcrafted features comprise a breadth of lexical, semantic, syntactic, and novel phonological measures, whereas visualizations of BERT attention maps offer insight into potential features that Transformers models may learn when fine-tuned for lexical complexity prediction. Our ensembled predictions score reasonably well for the single word subtask, and we demonstrate how it may be harnessed to perform well on the multi word expression subtask too.
 \end{abstract}
 
 \section{Introduction}
@@ -77,7 +77,7 @@ Lexical simplification (LS) is the task of replacing difficult words in a text w
 
 This year's Lexical Complexity Prediction (LCP) shared task \citep{shardlow2020complex} forgoes the treatment of word difficulty as a binary classification task \citep{paetzoldspecia:2016:SemEval1, stajner-EtAl:2018:BEA} and instead measures degree of difficulty on a continuous scale. This choice is intriguing as it mitigates a dilemma with previous approaches of having to treat words extremely close to a decision boundary (suppose a threshold deems a word's difficulty) identically to those that are far away, ie. extremely easy or difficult.
 
-Teams are asked to submit predictions on unlabeled test sets for two subtasks: predicting on single word and multi word expressions (MWEs), respectively. For each subtask, \texttt{BigGreen} presents a machine learning-based approach that fuses the predictions of a feature engineering-based regressor with those of a feature learning-based deep neural network model founded on BERT \citep{DBLP:journals/corr/abs-1810-04805}. Our code is made available on GitHub.\footnote{Insert link here.}
+Teams are asked to submit predictions on unlabeled test sets for two subtasks: predicting on single word and multi word expressions (MWEs), respectively. For each subtask, \texttt{BigGreen} presents a machine learning-based approach that fuses the predictions of a feature engineering-based regressor with those of a feature learning-based deep neural network model founded on BERT \citep{DBLP:journals/corr/abs-1810-04805}. Our code is made available on GitHub.\footnote{\url{https://github.com/Aadil101/BigGreen-at-LCP-2021}}
 
 \section{Related Work}
 
@@ -109,7 +109,7 @@ Results from CWI at SemEval-2016 \citep{zampieriEtAl:2017:NLPTEA} suggest vote e
   \caption{\label{tab:datasets} LCP train, trial, and test sets.}
 \end{table}
 
-\citet{shardlow2020complex} present CompLex, a novel dataset in which target expressions (single words or MWEs) are assigned continuous labels denoting their lexical complexity. Each label lies in range 0-1, a (normalized) average score given by employed crowd workers who record an expression's difficulty on a 5-point Likert scale. We define a sample's \textit{class} as the bin to which its complexity label belongs (bins corresponding to Likert points).
+\citet{shardlow2020complex} present CompLex, a novel dataset in which target expressions (single words or MWEs) are assigned continuous labels denoting their lexical complexity. Each label lies in range 0-1, a (normalized) average score given by employed crowd workers who record an expression's difficulty on a 5-point Likert scale. We define a sample's \textit{class} as the bin to which its complexity label belongs (bins corresponding to Likert points). Target expressions in CompLex have 0.395 average complexity and 0.115 standard deviation, reflecting a tendency to be slightly easier in general. 
 
 Each target expression is accompanied by the sentence it was extracted from, drawn from one of three corpora (Bible, Biomed, and Europarl). A summary of the train, trial,\footnote{In our study we avoid the trial set as we find it to be less representative of the training data, opting instead for training set cross-validation, stratified by corpus and complexity label.} and test set samples is provided in Table \ref{tab:datasets}.
 
