@@ -126,7 +126,7 @@ We use four additional corpora to extract term frequency-based features from:
 
 \section{BigGreen Systems \& Approaches}
 
-In this section, we overview features fed to our feature engineering-based system, as well as training techniques for the feature learning-based model. Note that the fitted model for the single word subtask are then harnessed for the MWE subtask.
+In this section, we overview features fed to our feature engineering-based system, as well as training techniques for the feature learning-based model. Note that the fitted models for the single word subtask are then harnessed for the MWE subtask.
 
 \subsection{Feature Engineering-based System}
 
@@ -184,11 +184,11 @@ These are features that assess the syntactic structure of the target word's cont
 
 Prior to training, we Z-score standardize all features. For the single word subtask, we fit Linear, Lasso, Elastic Net, Support Vector, K-Nearest Neighbors, and XGBoost regression models. 
 
-After identifying the best performing model by Pearson correlation, we seek to mitigate the imbalanced nature of the target variable, ie. multitude of class-1,2,3 and lack of class-4,5 samples. We devise a sister version of our top-performing model, fit upon a \textit{reduced} training set. We tune the percentages removed from classes 1-3 by performing cross-validation on the training set.
+After identifying the best performing model by Pearson correlation, we seek to mitigate the imbalanced nature of the target variable, ie. multitude of class 1,2,3 and lack of class 4,5 samples. We devise a sister version of our top-performing model, fit upon a \textit{reduced} training set. We tune the percentages removed from classes 1-3 by performing cross-validation on the training set.
 
 \subsection{System based on Feature Learning}
 
-Our handcrafted feature set relies heavily on target word-specific features. Beyond N-gram and syntactic features, it is a cursory analysis of the context surrounding the target word. We seek an alternative, automated approach with feature learning.
+Our handcrafted feature set relies heavily on target word-specific features. Beyond N-gram and syntactic features, it is a cursory analysis of the context surrounding the target word. We seek an alternative, automated approach using feature learning.
 
 \subsubsection{Architecture}
 
@@ -206,9 +206,9 @@ Our model's output layer produces the predicted lexical complexity for a given t
 
 \subsection{Ensembling}
 
-Our best performing feature engineering-based regression model yields two sets of predictions (from fitting on \textit{full} and \textit{reduced} training sets, respectively). We default to using the \textit{full} predictions, then tune a threshold, where predictions higher than the threshold (likely of class-4,5 samples) are overwritten with the \textit{reduced} predictions. We compute a weighted average ensemble of these predictions with those of our MT-DNN model to obtain a final set of single word subtask predictions. 
+Our best performing feature engineering-based regression model yields two sets of predictions (from fitting on \textit{full} and \textit{reduced} training sets, respectively). We default to using the \textit{full} predictions, then tune a threshold, where predictions higher than the threshold (likely of class 4,5 samples) are overwritten with the \textit{reduced} predictions. We compute a weighted average ensemble of these predictions with those of our MT-DNN model to obtain a final set of single word subtask predictions. 
 
-For the MWE subtask, the fitted models from the previous subtask are harnessed to predict lexical complexities of the head and tail words. We then compute a weighted average ensemble of these predicted complexities \textit{and} the predictions of the MT-DNN model trained on MWEs.
+For the MWE subtask, the fitted models from the previous subtask are harnessed to predict lexical complexities of the head and tail words. We then compute a weighted average ensemble of these predicted complexities \textit{and} the predictions of an MT-DNN model trained on MWEs.
 
 \section{Results}
 
@@ -282,7 +282,7 @@ In total we consider 110 features, in addition to our multidimensional embedding
   \caption{\label{fig:head_3-9} Head 3-9 attention map for a random sample.}
 \end{figure}
 
-Attention maps have in previous works been assessed to demonstrate linguistic phenomena learned by a Transformer's specialized attention heads \citep{190509418, 190604341}. We extract attention maps from MT-DNN's underlying fine-tuned BERT architecture. For each sample in the single word test set, we obtain an attention map from each of the BERT base model's 144 attention heads (ie. 12 heads, 12 layers).
+Attention maps have in previous works been assessed to demonstrate linguistic phenomena learned by a Transformer's specialized attention heads \citep{190509418, 190604341}. We extract attention maps from MT-DNN's underlying fine-tuned BERT architecture. For each sample in the single word test set, we obtain an attention map from each of the BERT base model's 144 attention heads (ie. 12 heads per 12 layers).
 
 Based on the precedence given to term frequency features by the XGBoost(\textit{full}) model, we hypothesize that for certain attention heads, the degree to which BPEs attend to one another varies relative to their word's rarity in lexicon. This follows the findings of \citet{190509418}, who identify heads in which lesser frequent tokens are attended to semi-uniformly by a majority of sentence tokens. 
 
@@ -292,7 +292,7 @@ To test our hypothesis, we estimate for each attention head the Pearson correlat
 
 In this paper, we report inspirations for systems submitted by \texttt{BigGreen} to LCP SharedTask 2021, achieving reasonable performance for the single word subtask by adapting ensemble methods upon feature engineering and feature learning-based models. We see potential in future deep learning approaches, acknowledging the need for complementary word frequency-based handcrafted features for the time being. We surpass our submitted results for the MWE subtask, by utilizing the predictive capabilities of our single word subtask models.
 
-Avenues for improvement include better data aggregation, as the relative lack of class-4,5 samples hurts Pearson correlation across extremely complex samples. An approach may involve synthetic data generation using SMOGN \citep{pmlrv74branco17a}. \citet{shardlow2020complex} acknowledge a reader's familiarity with a genre may affect perceived word complexity, however the CompLex dataset lacks information on each annotator's expertise or background, which may offer valuable new insights.
+Avenues for improvement include better data aggregation, as the relative lack of class-4,5 samples hurts Pearson correlation across extremely complex samples. An approach may involve synthetic data generation using SMOGN \citep{pmlrv74branco17a}. \citet{shardlow2020complex} acknowledge a reader's familiarity with a genre may affect perceived word complexity. However, the CompLex dataset lacks information on each annotator's expertise or background, which may offer valuable new insights.
 
 \bibliographystyle{acl_natbib}
 \bibliography{anthology,acl2021}
