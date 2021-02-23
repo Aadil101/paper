@@ -244,7 +244,7 @@ For the MWE subtask, the fitted models from the previous subtask are harnessed t
   \caption{\label{tab:multi-word-results} MWE subtask test set results. (*projection)}
 \end{table}
 
-We present the performances of \texttt{BigGreen}'s systems on test sets for the single and MWE subtasks. Please see Tables \ref{tab:single-word-results} and \ref{tab:multi-word-results}.
+We present the performances of \texttt{BigGreen}'s systems on each subtask in Tables \ref{tab:single-word-results} and \ref{tab:multi-word-results}.
 
 \section{Analysis}
 
@@ -292,7 +292,7 @@ To test our hypothesis, we estimate for each attention head the Pearson correlat
 
 In this paper, we report inspirations for systems submitted by \texttt{BigGreen} to LCP SharedTask 2021, achieving reasonable performance for the single word subtask by adapting ensemble methods upon feature engineering and feature learning-based models. We see potential in future deep learning approaches, acknowledging the need for complementary word frequency-based handcrafted features for the time being. We surpass our submitted results for the MWE subtask, by utilizing the predictive capabilities of our single word subtask models.
 
-Avenues for improvement include better data aggregation, as the relative lack of class-4,5 samples hurts Pearson correlation across samples of extreme complexity. An approach may involve synthetic data generation using SMOGN \citep{pmlrv74branco17a}. \citet{shardlow2020complex} acknowledge a reader's familiarity with a genre may affect perceived complexity of a word, however the CompLex dataset lacks information on each annotator's expertise or background, which may offer valuable new insights.
+Avenues for improvement include better data aggregation, as the relative lack of class-4,5 samples hurts Pearson correlation across extremely complex samples. An approach may involve synthetic data generation using SMOGN \citep{pmlrv74branco17a}. \citet{shardlow2020complex} acknowledge a reader's familiarity with a genre may affect perceived word complexity, however the CompLex dataset lacks information on each annotator's expertise or background, which may offer valuable new insights.
 
 \bibliographystyle{acl_natbib}
 \bibliography{anthology,acl2021}
