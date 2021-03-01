@@ -225,7 +225,7 @@ For the MWE subtask, the fitted models from the previous subtask are harnessed t
   Best competition results & 0.7886 & \\ 
   \hline
   \end{tabular}
-  \caption{\label{tab:single-word-results} Test set results for single word subtask. }
+  \caption{\label{tab:single-word-results} Test set results for single word subtask.}
 \end{table}
 
 \begin{table}
@@ -286,7 +286,7 @@ Attention maps have in previous works been assessed to demonstrate linguistic ph
 
 Based on the precedence given to term frequency features by the XGBoost(\textit{full}) model, we hypothesize that for certain attention heads, the degree to which BPEs attend to one another varies relative to their word's rarity in lexicon. This follows the findings of \citet{190509418}, who identify heads in which lesser frequent tokens are attended to semi-uniformly by a majority of sentence tokens. 
 
-To test our hypothesis, we estimate for each attention head the Pearson correlation between word frequency and average attention given to each word in the context.\footnote{We compute attention given to a \textit{word} as the sum of attention given to its constituent byte pair encodings (BPEs). We use the GBND corpus to extract word frequencies, though any large corpora would suffice.} As illustrated in Figure \ref{fig:head_correlations_tf}, we find multiple attention heads appearing to specialize at directing attention towards the most or least frequent words (depending on sign of the correlation). Vertical stripe patterns like that in Figure \ref{fig:head_3-9} emerge as a result of attention originating from a spectrum of tokens. The findings seem to affirm the fundamental relevancy of word frequency to lexical complexity prediction, corroborating our intuition.
+To test our hypothesis, we estimate for each attention head the Pearson correlation between word frequency and average attention given to each word in the context.\footnote{We compute attention given to a \textit{word} as the sum of attention given to its constituent BPEs. We use the GBND corpus to extract word frequencies, though any large corpora would suffice.} As illustrated in Figure \ref{fig:head_correlations_tf}, we find multiple attention heads appearing to specialize at directing attention towards the most or least frequent words (depending on sign of the correlation). Vertical stripe patterns like that in Figure \ref{fig:head_3-9} emerge as a result of attention originating from a spectrum of tokens. The findings seem to affirm the fundamental relevancy of word frequency to lexical complexity prediction, corroborating our intuition.
 
 \section{Conclusion}
 
