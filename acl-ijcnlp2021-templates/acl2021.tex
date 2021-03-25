@@ -165,7 +165,7 @@ These features compute the likelihood that consecutive soundable segments in the
   \item \textbf{Character transition probability}: analogous to that above, over \textit{character} bigrams.
 \end{itemize}
 
-\paragraph{Word Frequency and N-gram}
+\paragraph{Word Frequency \& N-gram Features}
 
 These features are expressly included due to their expected importance, \citep{zampieriEtAl:2017:NLPTEA}. Gigaword is the main corpus from which we extract word frequency measures (for both lemmatized and unlemmatized target words), summed frequency of the target word's byte pair encodings (BPEs), and summed frequencies of bigrams and trigrams. We complement these features with IDF-based analogues. Lastly, we use the GBND, BNC, and SUBTLEXus corpora to extract secondary word frequency, bigram, and trigram measures. 
 
