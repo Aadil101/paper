@@ -68,14 +68,14 @@ Lexical Complexity Prediction with Assembly Models}
 \maketitle
 
 \begin{abstract}
-  This paper describes systems submitted by team BigGreen to LCP 2021. We assemble a feature engineering-based model with a deep neural network model founded on BERT. The latter model contextualizes a target expression, given its sentence. While BERT is a strong model overall, the feature engineering-based model helps in extreme cases, eg. separating instances of easy and neutral difficulty. Our handcrafted features comprise a breadth of lexical, semantic, syntactic, and novel phonological measures. Additionally, visualizations of BERT attention maps offer insight into potential features that Transformers models may learn when fine-tuned for lexical complexity prediction. Our ensembled predictions score reasonably well for the single word subtask, and we demonstrate how they can be harnessed to perform well on the multi word expression subtask too.
+  This paper describes a system submitted by team BigGreen to LCP 2021 for predicting the lexical complexity of English words in a given context. We assemble a feature engineering-based model with a deep neural network model founded on BERT. While BERT itself performs competitively, our feature engineering-based model helps in extreme cases, eg. separating instances of easy and neutral difficulty. Our handcrafted features comprise a breadth of lexical, semantic, syntactic, and novel phonological measures. Visualizations of BERT attention maps offer insight into potential features that Transformers models may learn when fine-tuned for lexical complexity prediction. Our ensembled predictions score reasonably well for the single word subtask, and we demonstrate how they can be harnessed to perform well on the multi word expression subtask too.
 \end{abstract}
 
 \section{Introduction}
 
 Lexical simplification (LS) is the task of replacing difficult words in a text with simpler alternatives. It is applicable to reading comprehension, where early studies have shown infrequent words lead to more time spent by a reader fixated on it, and that ambiguity in a word's meaning adds to comprehension time \citep{raynerd86}. Complex word identification (CWI) is believed to be a fundamental step in the automation of lexical simplification \citep{shardlow2014open}. Early techniques for conducting CWI suffer from a lack of robustness, from simplifying all words to then study its efficacy \citep{devlintait}, to applying thresholds on features like word frequency \citep{10.1007/11573067_19}. 
 
-This year's Lexical Complexity Prediction (LCP) shared task \citep{shardlow2020complex} forgoes the treatment of word difficulty as a binary classification task \citep{paetzoldspecia:2016:SemEval1, stajner-EtAl:2018:BEA} and instead measures degree of complexity on a continuous scale. This choice is intriguing as it mitigates a dilemma with previous approaches of having to treat words extremely close to a decision boundary (suppose a threshold deems a word's difficulty) identically to those that are far away, ie. extremely easy or difficult.
+This year's Lexical Complexity Prediction (LCP) shared task \citep{shardlow2021semeval} forgoes the treatment of word difficulty as a binary classification task \citep{paetzoldspecia:2016:SemEval1, stajner-EtAl:2018:BEA} and instead measures degree of complexity on a continuous scale. This choice is intriguing as it mitigates a dilemma with previous approaches of having to treat words extremely close to a decision boundary (suppose a threshold deems a word's difficulty) identically to those that are far away, ie. extremely easy or difficult.
 
 Teams are asked to submit predictions on unlabeled test sets for two subtasks: predicting on single word and multi word expressions (MWEs), respectively. For each subtask, \texttt{BigGreen} presents a machine learning-based approach that fuses the predictions of a feature engineering-based regressor with those of a feature learning-based deep neural network model founded on BERT \citep{DBLP:journals/corr/abs-1810-04805}. Our code is made available on GitHub.\footnote{\url{https://github.com/Aadil101/BigGreen-at-LCP-2021}}.
 
@@ -94,7 +94,7 @@ Results from CWI at SemEval-2016 \citep{zampieriEtAl:2017:NLPTEA} suggest vote e
   \begin{tabular}{l|l|r|r|r}
     \toprule
     \centering
-    Corpus & Subtask & Train &  Trial &  Test \\
+    \textbf{Corpus} & \textbf{Subtask} & \textbf{Train} &  \textbf{Trial} & \textbf{Test} \\
     \midrule
     Bible & Single Word &   2574 &    143 &   283 \\
             & Multi Word &    505 &     29 &    66 \\
@@ -109,7 +109,7 @@ Results from CWI at SemEval-2016 \citep{zampieriEtAl:2017:NLPTEA} suggest vote e
   \caption{\label{tab:datasets} LCP train, trial, and test sets.}
 \end{table}
 
-\citet{shardlow2020complex} present CompLex, a novel dataset in which each target expression (single word or MWE) is assigned a continuous label denoting its lexical complexity. Each label lies in range 0-1, a (normalized) average score given by employed crowd workers who record an expression's difficulty on a 5-point Likert scale. We define a sample's \textit{class} as the bin to which its complexity label belongs (bins corresponding to Likert points). Target expressions in CompLex have 0.395 average complexity and 0.115 standard deviation, reflecting an imbalance in favor of class 2 and 3 samples. 
+\citet{shardlow2020complex} present CompLex, a novel dataset in which each target expression (single word or MWE) is assigned a continuous label denoting its lexical complexity. Each label lies in range 0-1, a (normalized) average score given by employed crowd workers who record an expression's difficulty on a 5-point Likert scale. We define a sample's \textit{class} as the bin to which its complexity label belongs, where bins are formed using the following mapping of complexity ranges: $[0,0.2) \rightarrow 1$, $[0.2, 0.4) \rightarrow 2$, $[0.4, 0.6) \rightarrow 3$, $[0.6, 0.8) \rightarrow 4$, $[0.8, 1] \rightarrow 5$. Target expressions in CompLex have 0.395 average complexity and 0.115 standard deviation, reflecting an imbalance in favor of class 2 and 3 samples. 
 
 Each target expression is accompanied by the sentence it was extracted from, drawn from one of three corpora (Bible, Biomed, and Europarl). A summary of the train, trial,\footnote{In our study we avoid the trial set as we find it to be less representative of the training data, opting instead for training set cross-validation, stratified by corpus and complexity label.} and test set samples is provided in Table \ref{tab:datasets}.
 
@@ -124,15 +124,15 @@ We use four additional corpora to extract term frequency-based features from:
   \item \noindent \textbf{SUBTLEXus}: this consists of American English subtitles, offering a multitude of word frequency lists \citep{Brysbaert2009MovingBK}.
 \end{itemize}
 
-\section{BigGreen Systems \& Approaches}
+\section{BigGreen System \& Approaches}
 
-In this section, we overview features fed to our feature engineering-based system, as well as training techniques for the feature learning-based model. Note that the fitted models for the single word subtask are then harnessed for the MWE subtask.
+In this section, we overview features fed to our feature engineering-based model, as well as training techniques for the feature learning-based model. Note that the fitted models for the single word subtask are then harnessed for the MWE subtask.
 
-\subsection{Feature Engineering-based System}
+\subsection{Feature Engineering-based Approach}
 
 \subsubsection{Feature Extraction}
 
-We aim to capture a breadth of information pertaining to the target word and its context. Most features follow heavily right-skewed distributions, prompting us to consider logged and unlogged versions of features. For the MWE subtask, features are extracted independently for head and tail words.
+We aim to capture a breadth of information pertaining to the target word and its context. Most features follow heavily right-skewed distributions, prompting us to also consider the $\log$-transformed version of each feature. For the MWE subtask, features are extracted independently for head and tail words. 
 
 \paragraph{Lexical Features}
 
@@ -167,7 +167,7 @@ These features compute the likelihood that consecutive soundable segments in the
 
 \paragraph{Word Frequency \& N-gram Features}
 
-These features are expressly included due to their expected importance, \citep{zampieriEtAl:2017:NLPTEA}. Gigaword is the main corpus from which we extract word frequency measures (for both lemmatized and unlemmatized target words), summed frequency of the target word's byte pair encodings (BPEs), and summed frequencies of bigrams and trigrams. We complement these features with IDF-based analogues. Lastly, we use the GBND, BNC, and SUBTLEXus corpora to extract secondary word frequency, bigram, and trigram measures. 
+These features are expressly included due to their expected importance \citep{zampieriEtAl:2017:NLPTEA}. Gigaword is the main corpus from which we extract word frequency measures (for both lemmatized and unlemmatized target words), summed frequency of the target word's byte pair encodings (BPEs), and summed frequencies of bigrams and trigrams. We complement these features with IDF-based analogues. Lastly, we use the GBND, BNC, and SUBTLEXus corpora to extract secondary word frequency, bigram, and trigram measures. 
 
 \paragraph{Syntactic Features}
 
@@ -182,11 +182,11 @@ These are features that assess the syntactic structure of the target word's cont
 
 \subsubsection{Training}
 
-Prior to training, we Z-score standardize all features. For the single word subtask, we fit Linear, Lasso, Elastic Net, Support Vector, K-Nearest Neighbors, and XGBoost regression models. 
+Prior to training, we Z-score standardize all features. For the single word subtask, we fit Linear, Lasso \citep{tibshirani96regression}, Elastic Net \citep{10.2307/3647580}, Support Vector Machine \citep{Platt99probabilisticoutputs}, K-Nearest Neighbors \citep{wiki:K-nearest_neighbors_algorithm}, and XGBoost \citep{DBLP:journals/corr/ChenG16} regression models. 
 
 After identifying the best performing model by Pearson correlation, we seek to mitigate the imbalanced nature of the target variable, ie. multitude of class 1,2,3 and lack of class 4,5 samples. We devise a sister version of our top-performing model, fit upon a \textit{reduced} training set. We tune the percentages removed from classes 1-3 by performing cross-validation on the training set.
 
-\subsection{System based on Feature Learning}
+\subsection{Approach based on Feature Learning}
 
 Our handcrafted feature set relies heavily on target word-specific features. Beyond N-gram and syntactic features, it is a cursory analysis of the context surrounding the target word. We seek an alternative, automated approach using feature learning.
 
@@ -194,7 +194,7 @@ Our handcrafted feature set relies heavily on target word-specific features. Bey
 
 LSTM-based approaches have been used to model the contexts of target words in past works \citep{hartmanndossantos2018nilc, dehertogtack2018deep}. An issue with a single LSTM is its ability to read tokens of an input sentence sequentially only in a single direction. It inspires us to try a Transformer-based approach \citep{DBLP:journals/corr/VaswaniSPUJGKP17}, architectures that process sentences as a whole (instead of word-by-word) by applying \textit{attention} mechanisms upon them. Attention weights are useful as they can be interpreted as learned relationships between words. BERT \citep{DBLP:journals/corr/abs-1810-04805} is one such model used for a variety of natural language understanding (NLU) tasks.
 
-Multi-Task Deep Neural Network (MT-DNN) proposed by \citet{liuetal2019multitask} offers state-of-the-art results for multiple NLU tasks by incorporating benefits of both multi-task learning and language model-pretraining. We are able to initialize MT-DNN's shared text encoding layers with a pretrained BERT base model (cased), and fine-tune its later layers for 5 epochs, using a mean squared error loss function and default hyperparameters.
+Multi-Task Deep Neural Network (MT-DNN) proposed by \citet{liuetal2019multitask} offers state-of-the-art results for multiple NLU tasks by incorporating benefits of both multi-task learning and language model-pretraining. We are able to initialize MT-DNN's shared text encoding layers with a pretrained BERT base model (cased), and fine-tune its later layers for 5 epochs, using a mean squared error loss function and default hyperparameters. The model is fine-tuned on just the CompLex corpus.
 
 \subsubsection{Input Layer}
 
@@ -244,13 +244,13 @@ For the MWE subtask, the fitted models from the previous subtask are harnessed t
   \caption{\label{tab:multi-word-results} MWE subtask test set results. (*projection)}
 \end{table}
 
-We present the performances of \texttt{BigGreen}'s systems on each subtask in Tables \ref{tab:single-word-results} and \ref{tab:multi-word-results}.
+We present the performances of \texttt{BigGreen}'s system on each subtask in Tables \ref{tab:single-word-results} and \ref{tab:multi-word-results}.
 
 \section{Analysis}
 
 \subsection{Performance}
 
-For feature selection, we find success in selecting the top-300 features by mutual information \textit{and} removing quasi-constant features. The pruned feature set is passed to both our wrapper/embedded methods and a variety of regressors for model comparison, where we find an XGBoost regressor \citep{DBLP:journals/corr/ChenG16} (with hyperparameters tuned using grid search) to excel consistently for the single word subtask. Performances are shown in Table \ref{tab:single-word-results}, where we rank in the top 15\% by Pearson. 
+For feature selection, we find success in selecting the top-300 features by mutual information \textit{and} removing quasi-constant features. The pruned feature set is passed to our wrapper/embedded methods and a variety of regressors for model comparison. We find an XGBoost model (with hyperparameters tuned via grid search) to excel consistently for the single word subtask. Performances are shown in Table \ref{tab:single-word-results}, where we rank in the top 15\% by Pearson correlation. 
 
 For the MWE subtask, performances are reported in Table \ref{tab:multi-word-results}. Note that our submitted predictions differ from post-competition predictions. We \textit{previously} used a training procedure resembling that for the single word subtask: (1) filter methods for feature selection, (2) XGBoost for regression, (3) ensembling with MT-DNN. We hypothesize that the fewer number of training samples available for this subtask contributed to the prior procedure's lackluster performance. This inspired us to incorporate the predictive capabilities of our fitted single word subtask models, yielding superior results.
 
@@ -290,7 +290,7 @@ To test our hypothesis, we estimate for each attention head the Pearson correlat
 
 \section{Conclusion}
 
-In this paper, we report inspirations for systems submitted by \texttt{BigGreen} to LCP SharedTask 2021, achieving reasonable performance for the single word subtask by adapting ensemble methods upon feature engineering and feature learning-based models. We see potential in future deep learning approaches, acknowledging the need for complementary word frequency-based handcrafted features for the time being. We surpass our submitted results for the MWE subtask, by utilizing the predictive capabilities of our single word subtask models.
+In this paper, we report inspirations for a system submitted by \texttt{BigGreen} to LCP SharedTask 2021, performing reasonably well for the single word subtask by adapting ensemble methods upon feature engineering and feature learning-based models. We see potential in future deep learning approaches, acknowledging the need for complementary word frequency-based handcrafted features for the time being. We surpass our submitted results for the MWE subtask, by utilizing the predictive capabilities of our single word subtask models.
 
 Avenues for improvement include better data aggregation, as the relative lack of class 4,5 samples hurts Pearson correlation across extremely complex samples. An approach may involve synthetic data generation using SMOGN \citep{pmlrv74branco17a}. \citet{shardlow2020complex} acknowledge a reader's familiarity with a genre may affect perceived word complexity. However, the CompLex dataset lacks information on each annotator's expertise or background, which may offer valuable new insights.
 
