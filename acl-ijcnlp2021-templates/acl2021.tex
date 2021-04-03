@@ -27,6 +27,8 @@
 %\usepackage[parfill]{parskip}
 \usepackage{booktabs}
 \usepackage{array}
+\usepackage{float}
+\usepackage{scrextend}
 
 % This is not strictly necessary, and may be commented out,
 % but it will improve the layout of the manuscript,
@@ -206,6 +208,8 @@ Our model's output layer produces the predicted lexical complexity for a given t
 
 \subsection{Ensembling}
 
+\label{sec:ensembling}
+
 Our best performing feature engineering-based regression model yields two sets of predictions (from fitting on \textit{full} and \textit{reduced} training sets, respectively). We default to using the \textit{full} predictions, then tune a threshold, where predictions higher than the threshold (likely of class 4,5 samples) are overwritten with the \textit{reduced} predictions. We compute a weighted average ensemble of these predictions with those of our MT-DNN model to obtain a final set of single word subtask predictions. 
 
 For the MWE subtask, the fitted models from the previous subtask are harnessed to predict lexical complexities of the head and tail words. We then compute a weighted average ensemble of these predicted complexities \textit{and} the predictions of an MT-DNN model trained on MWEs.
@@ -216,9 +220,9 @@ For the MWE subtask, the fitted models from the previous subtask are harnessed t
   \centering
   \begin{tabular}{lcccc}
   \hline \textbf{Model} & \textbf{Pearson} & \textbf{Rank} & \\ \hline
-  XGBoost (\textit{full}) &	0.7589 & - \\
-  XGBoost (\textit{reduced}) &	0.7456 & - \\
-  XGBoost (\textit{full}+\textit{reduced}) & 0.7576 & - \\
+  XGBoost$_\textit{full}$ &	0.7589 & - \\
+  XGBoost$_\textit{reduced}$ &	0.7456 & - \\
+  XGBoost$_{\textit{full}+\textit{reduced}}$ & 0.7576 & - \\
   MT-DNN & 0.7484 & - \\
   Ensemble (submission) & 0.7749 & 8 of 54 \\
   \hline
@@ -232,8 +236,8 @@ For the MWE subtask, the fitted models from the previous subtask are harnessed t
   \centering
   \begin{tabular}{lcccc}
   \hline \textbf{Model} & \textbf{Pearson} & \textbf{Rank} \\ \hline
-  Head pred. complexity & 0.7164 & - \\
-  Tail pred. complexity & 0.7188 & - \\
+  XGBoost$_{\textit{full}+\textit{reduced}}(\text{head})$ & 0.7164 & - \\
+  XGBoost$_{\textit{full}+\textit{reduced}}(\text{tail})$ & 0.7188 & - \\
   MT-DNN & 0.7890 & - \\
   Ensemble (submission) & 0.7898 & 25 of 37 \\
   Ensemble (improved) & 0.8290 & *14 of 37 \\
@@ -250,9 +254,11 @@ We present the performances of \texttt{BigGreen}'s system on each subtask in Tab
 
 \subsection{Performance}
 
+\label{sec:performance}
+
 For feature selection, we find success in selecting the top-300 features by mutual information \textit{and} removing quasi-constant features. The pruned feature set is passed to our wrapper/embedded methods and a variety of regressors for model comparison. We find an XGBoost model (with hyperparameters tuned via grid search) to excel consistently for the single word subtask. Performances are shown in Table \ref{tab:single-word-results}, where we rank in the top 15\% by Pearson correlation. 
 
-For the MWE subtask, performances are reported in Table \ref{tab:multi-word-results}. Note that our submitted predictions differ from post-competition predictions. We \textit{previously} used a training procedure resembling that for the single word subtask: (1) filter methods for feature selection, (2) XGBoost for regression, (3) ensembling with MT-DNN. We hypothesize that the fewer number of training samples available for this subtask contributed to the prior procedure's lackluster performance. This inspired us to incorporate the predictive capabilities of our fitted single word subtask models, yielding superior results.
+For the MWE subtask, performances are reported in Table \ref{tab:multi-word-results}. Note that our submitted predictions differ from post-competition predictions. We \textit{previously} used a training procedure resembling that for the single word subtask: (1) filter methods for feature selection, (2) XGBoost for regression, (3) ensembling with MT-DNN. We passed the entire MWE as input to our XGBoost and MT-DNN models. We hypothesize that the fewer number of training samples available for this subtask contributed to the prior procedure's lackluster performance. This inspired us to incorporate the predictive capabilities of our fitted single word subtask models by applying them \textit{independently} on the MWE's constituent head and tail words. This gives us predicted complexities for the head and tail words each, which when ensembled with the predictions of our MT-DNN model (that, mind you, is trained on the \textit{entire} MWE) yields superior results to those submitted to competition.
 
 \subsection{Feature Contribution}
 
@@ -260,10 +266,10 @@ For the MWE subtask, performances are reported in Table \ref{tab:multi-word-resu
   \centering
   \includegraphics[scale=0.45]{xgboost_feature_importances.png}
   \captionsetup{justification=centering}
-  \caption{\label{fig:xgboost_feature_importance} Feature importances for XGBoost(\textit{full}).}
+  \caption{\label{fig:xgboost_feature_importance} Feature importances for XGBoost$_\textit{full}$}
 \end{figure}
 
-In total we consider 110 features, in addition to our multidimensional embedding-based features and $\log$-transformed features. We inspect the estimated feature importance scores produced by the XGBoost(\textit{full}) model to find that term frequency-based features (eg. unigrams, bigrams, trigrams) are of overwhelming importance (see Figure \ref{fig:xgboost_feature_importance}). This raises concern for whether the MT-DNN model too relies on term frequencies to make \textit{its} predictions, and if not, the linguistic features it may have learned upon fine-tuning. Of the remaining features having non-zero feature importances, most appear to be dimensions of a target word-based semantic feature (ie. GloVe or ELMo embeddings).
+In total we consider 110 features, in addition to our multidimensional embedding-based features and $\log$-transformed features. We inspect the estimated feature importance scores produced by the XGBoost$_\textit{full}$ model to find that term frequency-based features (eg. unigrams, bigrams, trigrams) are of overwhelming importance (see Figure \ref{fig:xgboost_feature_importance}). This raises concern for whether the MT-DNN model too relies on term frequencies to make \textit{its} predictions, and if not, the linguistic features it may have learned upon fine-tuning. Of the remaining features having non-zero feature importances, most appear to be dimensions of a target word-based semantic feature (ie. GloVe or ELMo embeddings).
 
 \subsection{BERT Attention}
 \label{sec:bert_attention}
@@ -284,7 +290,7 @@ In total we consider 110 features, in addition to our multidimensional embedding
 
 Attention maps have in previous works been assessed to demonstrate linguistic phenomena learned by a Transformer's specialized attention heads \citep{190509418, 190604341}. We extract attention maps from MT-DNN's underlying fine-tuned BERT architecture. For each sample in the single word test set, we obtain an attention map from each of the BERT base model's 144 attention heads (ie. 12 heads per 12 layers).
 
-Based on the precedence given to term frequency features by the XGBoost(\textit{full}) model, we hypothesize that for certain attention heads, the degree to which BPEs attend to one another varies relative to their word's rarity in lexicon. This follows the findings of \citet{190509418}, who identify heads in which lesser frequent tokens are attended to semi-uniformly by a majority of sentence tokens. 
+Based on the precedence given to term frequency features by the XGBoost$_\textit{full}$ model, we hypothesize that for certain attention heads, the degree to which BPEs attend to one another varies relative to their word's rarity in lexicon. This follows the findings of \citet{190509418}, who identify heads in which lesser frequent tokens are attended to semi-uniformly by a majority of sentence tokens. 
 
 To test our hypothesis, we estimate for each attention head the Pearson correlation between word frequency and average attention given to each word in the context.\footnote{We compute attention given to a \textit{word} as the sum of attention given to its constituent BPEs. We use the GBND corpus to extract word frequencies, though any large corpora would suffice.} As illustrated in Figure \ref{fig:head_correlations_tf}, we find multiple attention heads appearing to specialize at directing attention towards the most or least frequent words (depending on sign of the correlation). Vertical stripe patterns like that in Figure \ref{fig:head_3-9} emerge as a result of attention originating from a spectrum of tokens. The findings seem to affirm the fundamental relevancy of word frequency to lexical complexity prediction, corroborating our intuition.
 
@@ -297,6 +303,310 @@ Avenues for improvement include better data aggregation, as the relative lack of
 \bibliographystyle{acl_natbib}
 \bibliography{anthology,acl2021}
 
-%\appendix
+\appendix
+
+\section{Feature Descriptions}
+
+Here, we describe in greater detail the various features that were experimented with for our feature engineering-based model. Note that while this discussion regards the single word subtask, for the MWE subtask we compute the same features but for each of the head and tail words, respectively.
+
+\subsection{Lexical Features}
+
+\texttt{word\_len}
+\begin{itemize}
+  \item Character length of the target word.
+\end{itemize}
+\texttt{num\_syllables}
+\begin{itemize}
+  \item Number of syllables in the target word, via the Syllables library.
+\end{itemize}
+\texttt{is\_acronym}
+\begin{itemize}
+  \item Boolean for whether the target word is all capital letters.
+\end{itemize}
+
+\subsection{Semantic Features}
+
+\texttt{num\_hyperyms}
+\begin{itemize}
+  \item Number of hyperyms associated with the target word. The target word is initially disambiguated using NLTK's implementation of the Lesk algorithm for Word Sense Disambiguation (WSD) \citep{10.1145318723.318728}, which finds the WordNet Synset with the highest number of overlapping words between the context and different definitions of each Synset.
+\end{itemize}
+\texttt{num\_hyponyms}
+\begin{itemize}
+  \item Number of hyponyms associated with the target word. Procedure for finding this is analogous to that for \texttt{num\_hyperyms}.
+\end{itemize}
+\texttt{glove\_word}
+\begin{itemize}
+  \item 300-dimension embedding for each target word, pre-trained on Wikipedia-2014 and Gigaword. Target word is lowercased for ease.
+\end{itemize}
+\texttt{elmo\_word}
+\begin{itemize}
+  \item 1024-dimension embedding for each target word, pre-trained on the One Billion Word Benchmark corpus.
+\end{itemize}
+\texttt{glove\_context}
+\begin{itemize}
+  \item 300-dimension average of GloVe word embeddings (see \texttt{glove\_word} above) for each word in the given context. Each word is lowercased for simplicity.
+\end{itemize}
+\texttt{infersent\_embeddings}
+\begin{itemize}
+  \item 4096-dimension embedding for the context.
+\end{itemize}
+
+\subsection{Phonetic Features}
+
+\texttt{char\_transition\_min}
+\begin{itemize}
+  \item Minimum of the set of character transition probabilities for each character bigram in the target word. Ground truth character transition probabilities between any two English characters are estimated over the Gigaword corpus.
+\end{itemize}
+\texttt{char\_transition\_max}
+\begin{itemize}
+  \item Maximum of the set described above.
+\end{itemize}
+\texttt{char\_transition\_mean}
+\begin{itemize}
+  \item Mean of the set described above.
+\end{itemize}
+\texttt{char\_transition\_std}
+\begin{itemize}
+  \item Standard deviation of the set described above.
+\end{itemize}
+\texttt{phoneme\_transition\_min}
+\begin{itemize}
+  \item Minimum of the set of phoneme transition probabilities for each character bigram in the target word. Ground truth phoneme transition probabilities between any two phonemes are estimated over the Gigaword corpus. The phoneme set considered is that of the CMU Pronouncing Dictionary.\footnote{\url{http://speech.cs.cmu.edu/cgi-bin/cmudict}}
+\end{itemize}
+\texttt{phoneme\_transition\_max}
+\begin{itemize}
+  \item Maximum of the set described above.
+\end{itemize}
+\texttt{phoneme\_transition\_mean}
+\begin{itemize}
+  \item Mean of the set described above.
+\end{itemize}
+\texttt{phoneme\_transition\_std}
+\begin{itemize}
+  \item Standard deviation of the set described above.
+\end{itemize}
+
+\subsection{Word Frequency \& N-gram Features}
+
+\subsubsection{Gigaword-based}
+
+\texttt{tf}
+\begin{itemize}
+  \item Target word term frequency. Note that all term frequency-based features are computed using Scikit-learn library's \texttt{CountVectorizer} \citep{scikitlearn}.
+\end{itemize}
+\texttt{tf\_lemma}
+\begin{itemize}
+  \item Term frequency of the lemmatized target word. Lemmatization is performed using NLTK's WordNet Lemmatizer.
+\end{itemize}
+\texttt{tf\_summed\_bpe}
+\begin{itemize}
+  \item Sum of term frequencies of each BPE in the target word. BPE tokenization is performed using Hugging Face's BERT Tokenizer.
+\end{itemize}
+\texttt{tf\_ngram\_2}
+\begin{itemize}
+  \item Sum of the term frequencies of each bigram in the context containing the target word.
+\end{itemize}
+\texttt{tf\_ngram\_3}
+\begin{itemize}
+  \item Sum of the term frequencies of each trigram in the context containing the target word.
+\end{itemize}
+\texttt{tfidf}
+\begin{itemize}
+  \item Term frequency-inverse document frequency.
+\end{itemize}
+\texttt{tfidf\_ngram\_2}
+\begin{itemize}
+  \item Sum of the term frequency-inverse document frequencies of each bigram in the context containing the target word.
+\end{itemize}
+\texttt{tfidf\_ngram\_3}
+\begin{itemize}
+  \item Sum of the term frequency-inverse document frequencies of each trigram in the context containing the target word.
+\end{itemize}
+
+\subsubsection{Google N-gram-based}
+
+\texttt{google\_ngram\_1}
+\begin{itemize}
+  \item Term frequency of the target word.
+\end{itemize}
+\texttt{google\_ngram\_2\_head}
+\begin{itemize}
+  \item Term frequency of leading bigram in the context containing the target word.
+\end{itemize}
+\texttt{google\_ngram\_2\_tail}
+\begin{itemize}
+  \item Term frequency of trailing bigram in the context containing the target word.
+\end{itemize}
+\texttt{google\_ngram\_2\_min}
+\begin{itemize}
+  \item Minimum of the set of term frequencies of bigrams in context containing the target word.
+\end{itemize}
+\texttt{google\_ngram\_2\_max}
+\begin{itemize}
+  \item Maximum of the set described above.
+\end{itemize}
+\texttt{google\_ngram\_2\_mean}
+\begin{itemize}
+  \item Average of the set described above.
+\end{itemize}
+\texttt{google\_ngram\_2\_std}
+\begin{itemize}
+  \item Standard deviation of the set described above.
+\end{itemize}
+\texttt{google\_ngram\_3\_head}
+\begin{itemize}
+  \item Term frequency of leading trigram in the context containing the target word.
+\end{itemize}
+\texttt{google\_ngram\_3\_mid}
+\begin{itemize}
+  \item Term frequency of middle trigram in the context containing the target word.
+\end{itemize}
+\texttt{google\_ngram\_3\_tail}
+\begin{itemize}
+  \item Term frequency of trailing trigram in the context containing the target word.
+\end{itemize}
+\texttt{google\_ngram\_3\_min}
+\begin{itemize}
+  \item Minimum of set of term frequencies of trigrams in the context containing target word.
+\end{itemize}
+\texttt{google\_ngram\_3\_max}
+\begin{itemize}
+  \item Maximum of the set described above.
+\end{itemize}
+\texttt{google\_ngram\_3\_mean}
+\begin{itemize}
+  \item Average of the set described above.
+\end{itemize}
+\texttt{google\_ngrams\_3\_std}
+\begin{itemize}
+  \item Standard deviation of the set described above.
+\end{itemize}
+
+\subsubsection{SUBTLEXus-based}
+
+\texttt{FREQcount}
+\begin{itemize}
+  \item Number of times target word appears in corpus.
+\end{itemize}
+\texttt{CDcount}
+\begin{itemize}
+  \item Number of films in which target word appears.
+\end{itemize}
+\texttt{FREQlow}
+\begin{itemize}
+  \item Number of times the lowercased target word appears in corpus.
+\end{itemize}
+\texttt{CDlow}
+\begin{itemize}
+  \item Number of films in which the lowercased target word appears.
+\end{itemize}
+\texttt{SUBTLWF}
+\begin{itemize}
+  \item Number of times the target word appears per million words.
+\end{itemize}
+\texttt{SUBTLCD}
+\begin{itemize}
+  \item Percent of films in which target word appears.
+\end{itemize}
+
+\subsubsection{BNC-based}
+
+\texttt{bnc\_frequency}: Target word term frequency.
+
+\subsection{Syntactic Features}
+
+\texttt{parse\_tree\_depth}
+\begin{itemize}
+  \item Height of context's constituency parse tree. Parse trees are obtained using a Stanford CoreNLP pipeline.
+\end{itemize}
+\texttt{token\_depth}
+\begin{itemize}
+  \item Depth of the target word with respect to root node of the context's constituency parse tree.
+\end{itemize}
+\texttt{num\_words\_at\_depth}
+\begin{itemize}
+  \item Number of words at the depth of the target word in the context's constituency parse tree (see \texttt{token\_depth} above).
+\end{itemize}
+\texttt{is\_proper}
+\begin{itemize}
+  \item Boolean for whether target word is a proper noun/adjective, based on capitalization.
+\end{itemize}
+\texttt{POS\_\{CC, CD, DT, EX, FW, IN, JJ, JJR, JJS, LS, MD, NN, NNP, NNPS, NNS, PDT, POS, PRP, PRP\$, RB, RBR, RBS, RP, SYM, TO, UH, VB, VBD, VBG, VBN, VBP, VBZ, WDT, WP, WP\$, WRB\}}
+\begin{itemize}
+  \item Booleans indicating the target word's part-of-speech tag. Tags considered are those used by the Penn Treebank Project.\footnote{\url{https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html}} Tags are estimated using NLTK's \texttt{pos\_tag} method.
+\end{itemize}
+
+\subsection{Readability Features}
+
+\texttt{automated\_readability\_index, avg\_character\_per\_word, avg\_letter\_per\_word, avg\_syllables\_per\_word, char\_count, coleman\_liau\_index, crawford, fernandez\_huerta, flesch\_kincaid\_grade, flesch\_reading\_ease, gutierrez\_polini, letter\_count, lexicon\_count, linsear\_write\_formula, lix, polysyllabcount, reading\_time, rix, syllable\_count, szigriszt\_pazos, SMOGIndex, DaleChallIndex}
+\begin{itemize}
+  \item Algorithms applied using Textstat library's implementations, most being readability metrics.
+\end{itemize}
+
+\subsection{Other Features}
+
+\texttt{ppl}
+\begin{itemize}
+  \item Perplexity metric, as defined by the Hugging Face library.\footnote{\url{https://huggingface.co/transformers/perplexity.html}} For each token in the context, we apply a pretrained GPT-2 model to estimate the $\log$-likelihood of the token occurring \textit{given its preceding tokens}. A sliding-window approach is used to handle the large number of tokens in a context. The $\log$-likelihoods are then averaged, and lastly exponentiated.
+\end{itemize}
+\texttt{ppl\_aspect\_only}
+\begin{itemize}
+  \item Similar approach to that described above, where only $\log$-likelihoods of tokens comprising the target word are averaged.
+\end{itemize}
+\texttt{num\_OOV}
+\begin{itemize}
+  \item Number of words in the context that do not exist in the vocabulary of Gigaword.
+\end{itemize}
+\texttt{corpus\_bible, corpus\_biomed, corpus\_europarl}
+\begin{itemize}
+  \item Booleans indicating the domain of the sample.
+\end{itemize}
+
+\section{Model Hyperparameters}
+
+Here we provide optimized hyperparameter settings that may help future developers with reproducing results, namely with training our models.
+
+\subsection{XGBoost}
+
+Below are tuned parameters used for all of our XGBoost models. Parameters not listed are given default values as specified in documentation\footnote{\url{https://xgboost.readthedocs.io/en/latest/}}:
+
+\indent \texttt{colsample\_bytree}: 0.7\\
+\indent \texttt{learning\_rate}: 0.03\\
+\indent \texttt{max\_depth}: 5\\
+\indent \texttt{min\_child\_weight}: 4\\
+\indent \texttt{n\_estimators}: 225\\
+\indent \texttt{nthread}: 4\\
+\indent \texttt{objective}: `reg:linear'\\
+\indent \texttt{silent}: 1\\
+\indent \texttt{subsample}: 0.7
+
+\subsection{MT-DNN}
+
+MT-DNN uses \texttt{yaml} as its config file format. Below are the contents of our task config file:
+
+\indent \texttt{data\_format}: PremiseAndOneHypothesis\\
+\indent \texttt{enable\_san}: false\\
+\indent \texttt{metric\_meta}:\\
+\indent - Pearson\\
+\indent - Spearman\\
+\indent \texttt{n\_class}: 1\\
+\indent \texttt{loss} MseCriterion\\
+\indent \texttt{kd\_loss}: MseCriterion\\
+\indent \texttt{adv\_loss}: MseCriterion\\
+\indent \texttt{task\_type}: Regression
+
+\subsection{Ensemble}
+
+Threshold above which a sample is assigned its \textit{reduced} prediction (ie. XGBoost$_\textit{reduced}$ prediction) instead of its \textit{full} prediction by (ie. XGBoost$_\textit{full}$ prediction): 0.59. Note this threshold is used to compute our XGBoost$
+_{\textit{full}+\textit{reduced}}$ prediction.\\
+
+\noindent Weighted average ensemble (single word subtask):\\
+- Weight for XGBoost$_{\textit{full}+\textit{reduced}}$ prediction: 0.5\\
+- Weight for MT-DNN prediction: 0.5\\
+
+\noindent Weighted average ensemble (MWE subtask):\\
+- Weight for XGBoost$_{\textit{full}+\textit{reduced}}(\text{head})$: 0.28 \\
+- Weight for XGBoost$_{\textit{full}+\textit{reduced}}(\text{tail})$: 0.17 \\
+- Weight for MT-DNN prediction: 0.55\\
 
 \end{document}
