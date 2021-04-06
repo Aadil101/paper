@@ -355,7 +355,7 @@ Here, we describe in greater detail the various features that were experimented 
 
 \texttt{char\_transition\_min}
 \begin{itemize}
-  \item Minimum of the set of character transition probabilities for each character bigram in the target word. Ground truth character transition probabilities between any two English characters are estimated over the Gigaword corpus.
+  \item Minimum of the set of character transition probabilities for each character bigram in the target word. Ground truth character transition probabilities between any two English characters are estimated over Gigaword.
 \end{itemize}
 \texttt{char\_transition\_max}
 \begin{itemize}
@@ -525,7 +525,7 @@ Here, we describe in greater detail the various features that were experimented 
 \end{itemize}
 \texttt{num\_words\_at\_depth}
 \begin{itemize}
-  \item Number of words at the depth of the target word in the context's constituency parse tree (see \texttt{token\_depth} above).
+  \item Number of words at the depth of the target word (see \texttt{token\_depth} above) in the context's constituency parse tree.
 \end{itemize}
 \texttt{is\_proper}
 \begin{itemize}
@@ -533,21 +533,21 @@ Here, we describe in greater detail the various features that were experimented 
 \end{itemize}
 \texttt{POS\_\{CC, CD, DT, EX, FW, IN, JJ, JJR, JJS, LS, MD, NN, NNP, NNPS, NNS, PDT, POS, PRP, PRP\$, RB, RBR, RBS, RP, SYM, TO, UH, VB, VBD, VBG, VBN, VBP, VBZ, WDT, WP, WP\$, WRB\}}
 \begin{itemize}
-  \item Booleans indicating the target word's part-of-speech tag. Tags considered are those used by the Penn Treebank Project.\footnote{\url{https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html}} Tags are estimated using NLTK's \texttt{pos\_tag} method.
+  \item Booleans indicating the target word's part-of-speech tag. Tags considered are those used in the Penn Treebank Project.\footnote{\url{https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html}} Tags are estimated using NLTK's \texttt{pos\_tag} method.
 \end{itemize}
 
 \subsection{Readability Features}
 
 \texttt{automated\_readability\_index, avg\_character\_per\_word, avg\_letter\_per\_word, avg\_syllables\_per\_word, char\_count, coleman\_liau\_index, crawford, fernandez\_huerta, flesch\_kincaid\_grade, flesch\_reading\_ease, gutierrez\_polini, letter\_count, lexicon\_count, linsear\_write\_formula, lix, polysyllabcount, reading\_time, rix, syllable\_count, szigriszt\_pazos, SMOGIndex, DaleChallIndex}
 \begin{itemize}
-  \item Algorithms applied using Textstat library's implementations, most being readability metrics.
+  \item Algorithms applied using Textstat library implementations, most being readability metrics.
 \end{itemize}
 
 \subsection{Other Features}
 
 \texttt{ppl}
 \begin{itemize}
-  \item Perplexity metric, as defined by the Hugging Face library.\footnote{\url{https://huggingface.co/transformers/perplexity.html}} For each token in the context, we apply a pretrained GPT-2 model to estimate the $\log$-likelihood of the token occurring \textit{given its preceding tokens}. A sliding-window approach is used to handle the large number of tokens in a context. The $\log$-likelihoods are then averaged, and lastly exponentiated.
+  \item Perplexity metric, as defined by the Hugging Face library.\footnote{\url{https://huggingface.co/transformers/perplexity.html}} For each token in the context, we use a pretrained GPT-2 model to estimate the $\log$-likelihood of the token occurring \textit{given its preceding tokens}. A sliding-window approach is used to handle the large number of tokens in a context. The $\log$-likelihoods are averaged, and then exponentiated.
 \end{itemize}
 \texttt{ppl\_aspect\_only}
 \begin{itemize}
@@ -559,7 +559,7 @@ Here, we describe in greater detail the various features that were experimented 
 \end{itemize}
 \texttt{corpus\_bible, corpus\_biomed, corpus\_europarl}
 \begin{itemize}
-  \item Booleans indicating the domain of the sample.
+  \item Booleans indicating the sample's domain.
 \end{itemize}
 
 \section{Model Hyperparameters}
@@ -568,7 +568,7 @@ Here we provide optimized hyperparameter settings that may help future developer
 
 \subsection{XGBoost}
 
-Below are tuned parameters used for all of our XGBoost models. Parameters not listed are given default values as specified in documentation\footnote{\url{https://xgboost.readthedocs.io/en/latest/}}:
+Below are tuned parameters used for all of our XGBoost models. Parameters not listed are given default values as specified in documentation:\footnote{\url{https://xgboost.readthedocs.io/en/latest/}}
 
 \indent \texttt{colsample\_bytree}: 0.7\\
 \indent \texttt{learning\_rate}: 0.03\\
@@ -590,14 +590,14 @@ MT-DNN uses \texttt{yaml} as its config file format. Below are the contents of o
 \indent - Pearson\\
 \indent - Spearman\\
 \indent \texttt{n\_class}: 1\\
-\indent \texttt{loss} MseCriterion\\
+\indent \texttt{loss}: MseCriterion\\
 \indent \texttt{kd\_loss}: MseCriterion\\
 \indent \texttt{adv\_loss}: MseCriterion\\
 \indent \texttt{task\_type}: Regression
 
 \subsection{Ensemble}
 
-Threshold above which a sample is assigned its \textit{reduced} prediction (ie. XGBoost$_\textit{reduced}$ prediction) instead of its \textit{full} prediction by (ie. XGBoost$_\textit{full}$ prediction): 0.59. Note this threshold is used to compute our XGBoost$
+Threshold above which a sample is assigned its \textit{reduced} prediction (ie. XGBoost$_\textit{reduced}$ prediction) instead of its \textit{full} prediction (ie. XGBoost$_\textit{full}$ prediction): 0.59. Note that this threshold is used to compute our XGBoost$
 _{\textit{full}+\textit{reduced}}$ prediction.\\
 
 \noindent Weighted average ensemble (single word subtask):\\
