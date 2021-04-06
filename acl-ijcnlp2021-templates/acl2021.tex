@@ -58,7 +58,7 @@
 Lexical Complexity Prediction with Assembly Models}
 
 \author{
-  \textbf{Aadil Islam}\normalfont{,} \textbf{Weicheng Ma}\normalfont{, and} \textbf{Soroush Vosoughi}\\
+  \textbf{Aadil Islam}\normalfont{,} \textbf{Weicheng Ma}\normalfont{,} \textbf{Soroush Vosoughi}\\
   Department of Computer Science\\
   Dartmouth College\\
   \texttt{\{aadil.islam.21, weicheng.ma.gr, soroush.vosoughi\}@dartmouth.edu}
@@ -236,8 +236,8 @@ For the MWE subtask, the fitted models from the previous subtask are harnessed t
   \centering
   \begin{tabular}{lcccc}
   \hline \textbf{Model} & \textbf{Pearson} & \textbf{Rank} \\ \hline
-  XGBoost$_{\textit{full}+\textit{reduced}}(\text{head})$ & 0.7164 & - \\
-  XGBoost$_{\textit{full}+\textit{reduced}}(\text{tail})$ & 0.7188 & - \\
+  XGBoost$_{\textit{full}+\textit{red.}}(\text{head})$ & 0.7164 & - \\
+  XGBoost$_{\textit{full}+\textit{red.}}(\text{tail})$ & 0.7188 & - \\
   MT-DNN & 0.7890 & - \\
   Ensemble (submission) & 0.7898 & 25 of 37 \\
   Ensemble (improved) & 0.8290 & *14 of 37 \\
@@ -264,7 +264,7 @@ For the MWE subtask, performances are reported in Table \ref{tab:multi-word-resu
 
 \begin{figure}
   \centering
-  \includegraphics[scale=0.45]{xgboost_feature_importances.png}
+  \includegraphics[scale=0.3]{xgboost_feature_importances.png}
   \captionsetup{justification=centering}
   \caption{\label{fig:xgboost_feature_importance} Feature importances for XGBoost$_\textit{full}$}
 \end{figure}
