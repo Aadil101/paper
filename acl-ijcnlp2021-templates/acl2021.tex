@@ -75,17 +75,19 @@ Lexical Complexity Prediction with Assembly Models}
 
 \section{Introduction}
 
-Lexical simplification (LS) is the task of replacing difficult words in a text with simpler alternatives. It is applicable to reading comprehension, where early studies have shown infrequent words lead to more time spent by a reader fixated on it, and that ambiguity in a word's meaning adds to comprehension time \citep{raynerd86}. Complex word identification (CWI) is believed to be a fundamental step in the automation of lexical simplification \citep{shardlow2014open}. Early techniques for conducting CWI suffer from a lack of robustness, from simplifying all words to then study its efficacy \citep{devlintait}, to applying thresholds on features like word frequency \citep{10.1007/11573067_19}. 
+Lexical simplification (LS) is the task of replacing difficult words in text with simpler alternatives. It is relevant in reading comprehension, where early studies have shown infrequent words lead to more time spent by a reader fixated on it, and that ambiguity in a word's meaning adds to comprehension time \citep{rayner1986lexical}. Complex word identification (CWI) is believed to be a fundamental step in the automation of lexical simplification \citep{shardlow2014out}. Early techniques for conducting CWI suffer from a lack of robustness, from simplifying all words to then study its efficacy \citep{devlin1998use}, to applying thresholds on features like word frequency \citep{zeng2005text}. 
 
-This year's Lexical Complexity Prediction (LCP) shared task \citep{shardlow2021semeval} forgoes the treatment of word difficulty as a binary classification task \citep{paetzoldspecia:2016:SemEval1, stajner-EtAl:2018:BEA} and instead measures degree of complexity on a continuous scale. This choice is intriguing as it mitigates a dilemma with previous approaches of having to treat words extremely close to a decision boundary (suppose a threshold deems a word's difficulty) identically to those that are far away, ie. extremely easy or difficult.
+This year's Lexical Complexity Prediction (LCP) shared task \citep{shardlow2021semeval} forgoes the treatment of word difficulty as a binary classification task \citep{paetzold2016semeval, yimam2018report} and instead measures degree of complexity on a continuous scale. This choice is intriguing as it mitigates a dilemma with previous approaches of having to treat words extremely close to a decision boundary (suppose a threshold deems a word's difficulty) identically to those that are far away, ie. extremely easy or difficult.
 
-Teams are asked to submit predictions on unlabeled test sets for two subtasks: predicting on single word and multi word expressions (MWEs), respectively. For each subtask, \texttt{BigGreen} presents a machine learning-based approach that fuses the predictions of a feature engineering-based regressor with those of a feature learning-based deep neural network model founded on BERT \citep{DBLP:journals/corr/abs-1810-04805}. Our code is made available on GitHub.\footnote{\url{https://github.com/Aadil101/BigGreen-at-LCP-2021}}.
+Teams are asked to submit predictions on unlabeled test sets for two subtasks: predicting on single word and multi word expressions (MWEs), respectively. For each subtask, \texttt{BigGreen} presents a machine learning-based approach that fuses the predictions of a feature engineering-based regressor with those of a feature learning-based deep neural network model founded on BERT \citep{devlin2018bert}. Our code is made available on GitHub.\footnote{\url{https://github.com/Aadil101/BigGreen-at-LCP-2021}}.
 
 \section{Related Work}
 
-Previous studies have looked at estimating the readability of a given text at the sentence-level. \citet{10.2307/40011226} regresses the number of polysyllabic words in a given lesson against the mean score for students quizzed on said lesson, yielding the SMOG Readability Formula. \citet{10.2307/1473169} offer a list of 768 (later updated to 3,000) words familiar to grade-school students in reading, which they find correlates with passage difficulty. An issue with traditional readability metrics seems to be the loss of generality at the word-level.
+Previous studies have looked at estimating the readability of a given text at the sentence-level. \citet{mc1969smog} regresses the number of polysyllabic words in a given lesson against the mean score for students quizzed on said lesson, yielding the SMOG Readability Formula. \citet{dale1948formula} offer a list of 768 (later updated to 3,000) words familiar to grade-school students in reading, which they find correlates with passage difficulty. An issue with traditional readability metrics seems to be the loss of generality at the word-level.
 
-Results from CWI at SemEval-2016 \citep{zampieriEtAl:2017:NLPTEA} suggest vote ensembling predictions of the best performing models as an effective strategy, while several top-performing models \citep{paetzoldspecia2016sv000gg, ronzanoetal2016taln, mukherjeeetal2016ju} appear to use linguistic information beyond word frequency. These findings inspire our use of ensemble techniques, and a foray into phonological features as a point of research. Results from CWI at SemEval-2018 show feature engineering-based models outperforming deep learning-based counterparts, despite the latter having generally better performances since SemEval-2016.
+\citet{shardlow2013comparison} tries a brute force approach where a simplification algorithm is applied to each word of a given text, deeming a world complex if simplified. However, this suffers from the assumption that a non-complex word does not require further simplification. Also attempted is the assignment of familiarity scores to each word, where a threshold determining a word's complexity is tuned. We avoid thresholding in our study as we find it unnecessary, since raw familiarity scores can be used as features in regression-based tasks. 
+
+Results from CWI at SemEval-2016 \citep{zampieri2017complex} suggest vote ensembling predictions of the best performing models as an effective strategy, while several top-performing models \citep{paetzold2016sv000gg, ronzano2016taln, mukherjee2016ju_nlp} appear to use linguistic information beyond word frequency. These findings inspire our use of ensemble techniques, and a foray into phonological features as a point of research. Results from CWI at SemEval-2018 show feature engineering-based models outperforming deep learning-based counterparts, despite the latter having generally better performances since SemEval-2016.
 
 \section{Data}
 
@@ -94,19 +96,20 @@ Results from CWI at SemEval-2016 \citep{zampieriEtAl:2017:NLPTEA} suggest vote e
 \begin{table}
   \centering
   \begin{tabular}{l|l|r|r|r}
-    \toprule
+    \hline
     \centering
-    \textbf{Corpus} & \textbf{Subtask} & \textbf{Train} &  \textbf{Trial} & \textbf{Test} \\
-    \midrule
+    \textbf{Corpus} & \textbf{Subtask} & \textbf{Train} &  \textbf{Trial} &  \textbf{Test} \\
+    \hline
     Bible & Single Word &   2574 &    143 &   283 \\
             & Multi Word &    505 &     29 &    66 \\
-    \midrule
     Biomed & Single Word &   2576 &    135 &   289 \\
             & Multi Word &    514 &     33 &    53 \\
-    \midrule
     Europarl & Single Word &   2512 &    143 &   345 \\
             & Multi Word &    498 &     37 &    65 \\
-    \bottomrule
+    \hline
+    \textbf{Total} & Single Word & 7662 & 421 & 917 \\
+          & Multi Word &    1517 &     99 &    184 \\
+    \hline
   \end{tabular}
   \caption{\label{tab:datasets} LCP train, trial, and test sets.}
 \end{table}
@@ -120,10 +123,10 @@ Each target expression is accompanied by the sentence it was extracted from, dra
 We use four additional corpora to extract term frequency-based features from:
 
 \begin{itemize}
-  \item \noindent \textbf{English Gigaword Fifth Edition} (Gigaword): this comprises articles from seven English newswires \citep{gigaword}.
+  \item \noindent \textbf{English Gigaword Fifth Edition} (Gigaword): this comprises articles from seven English newswires \citep{parker2011english}.
   \item \noindent \textbf{Google Books Ngrams, version 2} (GBND): this is used to count occurences of phrases across a corpus of books, accessed via the PhraseFinder API \citep{phrasefinder}.
-  \item \noindent \textbf{British National Corpus, version 3} (BNC): this is a collection of written and spoken English \citep{BNC}.
-  \item \noindent \textbf{SUBTLEXus}: this consists of American English subtitles, offering a multitude of word frequency lists \citep{Brysbaert2009MovingBK}.
+  \item \noindent \textbf{British National Corpus, version 3} (BNC): this is a collection of written and spoken English \citep{bnc2007british}.
+  \item \noindent \textbf{SUBTLEXus}: this consists of American English subtitles, offering a multitude of word frequency lists \citep{brysbaert2009moving}.
 \end{itemize}
 
 \section{BigGreen System \& Approaches}
@@ -151,11 +154,11 @@ These are features based on lexical information about the target word:
 These features capture the target word's meaning:
 
 \begin{itemize}
-  \item \textbf{WordNet features}: the number of hyponyms and hypernyms associated with the target word in WordNet \citep{Fellbaum:2005}.
+  \item \textbf{WordNet features}: the number of hyponyms and hypernyms associated with the target word in WordNet \citep{fellbaum2010wordnet}.
   \item \textbf{GloVe word embeddings}: we extract 300-dimension embeddings pre-trained on Wikipedia-2014 and Gigaword \citep{pennington2014glove} for each (lowercased) target word. 
-  \item \textbf{ELMo word embeddings}: we extract for each target word a 1024-dimension contextualized embedding pre-trained on the One Billion Word Benchmark \citep{Peters:2018}.
+  \item \textbf{ELMo word embeddings}: we extract for each target word a 1024-dimension contextualized embedding pre-trained on the One Billion Word Benchmark \citep{peters2018deep}.
   \item \textbf{GloVe context embeddings}: we obtain the average 300-dimension GloVe word embedding over each token in the given sentence.
-  \item \textbf{InferSent context embeddings}: we obtain 4096-dimension InferSent embeddings \citep{conneau-EtAl:2017:EMNLP2017} for each sentence.
+  \item \textbf{InferSent context embeddings}: we obtain 4096-dimension InferSent embeddings \citep{conneau2017supervised} for each sentence.
 \end{itemize}
 
 \paragraph{Phonetic Features}
@@ -169,14 +172,14 @@ These features compute the likelihood that consecutive soundable segments in the
 
 \paragraph{Word Frequency \& N-gram Features}
 
-These features are expressly included due to their expected importance \citep{zampieriEtAl:2017:NLPTEA}. Gigaword is the main corpus from which we extract word frequency measures (for both lemmatized and unlemmatized target words), summed frequency of the target word's byte pair encodings (BPEs), and summed frequencies of bigrams and trigrams. We complement these features with IDF-based analogues. Lastly, we use the GBND, BNC, and SUBTLEXus corpora to extract secondary word frequency, bigram, and trigram measures. 
+These features are expressly included due to their expected importance \citep{zampieri2017complex}. Gigaword is the main corpus from which we extract word frequency measures (for both lemmatized and unlemmatized target words), summed frequency of the target word's byte pair encodings (BPEs), and summed frequencies of bigrams and trigrams. We complement these features with IDF-based analogues. Lastly, we use the GBND, BNC, and SUBTLEXus corpora to extract secondary word frequency, bigram, and trigram measures. 
 
 \paragraph{Syntactic Features}
 
-These are features that assess the syntactic structure of the target word's context. We construct the constituency parse tree for each sentence using a Stanford CoreNLP pipeline \citep{manning-EtAl:2014:P14-5}.
+These are features that assess the syntactic structure of the target word's context. We construct the constituency parse tree for each sentence using a Stanford CoreNLP pipeline \citep{manning2014stanford}.
 
 \begin{itemize}
-  \item \textbf{Part of speech (POS)}: tag is obtained using NLTK's \texttt{pos\_tag} \citep{Loper02nltk:the}.
+  \item \textbf{Part of speech (POS)}: tag is obtained using NLTK's \texttt{pos\_tag} \citep{bird2009natural}.
   \item \textbf{Depth of parse tree}: the parse tree's height.
   \item \textbf{Depth of target word}: the distance between the target word and the parse tree's root node.
   \item \textbf{Is proper}: whether the target word is a proper noun/adjective, detected using capitalization.
@@ -184,7 +187,7 @@ These are features that assess the syntactic structure of the target word's cont
 
 \subsubsection{Training}
 
-Prior to training, we Z-score standardize all features. For the single word subtask, we fit Linear, Lasso \citep{tibshirani96regression}, Elastic Net \citep{10.2307/3647580}, Support Vector Machine \citep{Platt99probabilisticoutputs}, K-Nearest Neighbors \citep{wiki:K-nearest_neighbors_algorithm}, and XGBoost \citep{DBLP:journals/corr/ChenG16} regression models. 
+Prior to training, we Z-score standardize all features. For the single word subtask, we fit Linear, Lasso \citep{tibshirani1996regression}, Elastic Net \citep{zou2005regularization}, Support Vector Machine \citep{platt1999probabilistic}, K-Nearest Neighbors \citep{wiki:K-nearest_neighbors_algorithm}, and XGBoost \citep{chen2016xgboost} regression models. 
 
 After identifying the best performing model by Pearson correlation, we seek to mitigate the imbalanced nature of the target variable, ie. multitude of class 1,2,3 and lack of class 4,5 samples. We devise a sister version of our top-performing model, fit upon a \textit{reduced} training set. We tune the percentages removed from classes 1-3 by performing cross-validation on the training set.
 
@@ -194,13 +197,13 @@ Our handcrafted feature set relies heavily on target word-specific features. Bey
 
 \subsubsection{Architecture}
 
-LSTM-based approaches have been used to model the contexts of target words in past works \citep{hartmanndossantos2018nilc, dehertogtack2018deep}. An issue with a single LSTM is its ability to read tokens of an input sentence sequentially only in a single direction. It inspires us to try a Transformer-based approach \citep{DBLP:journals/corr/VaswaniSPUJGKP17}, architectures that process sentences as a whole (instead of word-by-word) by applying \textit{attention} mechanisms upon them. Attention weights are useful as they can be interpreted as learned relationships between words. BERT \citep{DBLP:journals/corr/abs-1810-04805} is one such model used for a variety of natural language understanding (NLU) tasks.
+LSTM-based approaches have been used to model the contexts of target words in past works \citep{hartmann2018nilc, de2018deep}. An issue with a single LSTM is its ability to read tokens of an input sentence sequentially only in a single direction. It inspires us to try a Transformer-based approach \citep{vaswani2017attention}, architectures that process sentences as a whole (instead of word-by-word) by applying \textit{attention} mechanisms upon them. Attention weights are useful as they can be interpreted as learned relationships between words. BERT \citep{devlin2018bert} is one such model used for a variety of natural language understanding (NLU) tasks.
 
-Multi-Task Deep Neural Network (MT-DNN) proposed by \citet{liuetal2019multitask} offers state-of-the-art results for multiple NLU tasks by incorporating benefits of both multi-task learning and language model-pretraining. We are able to initialize MT-DNN's shared text encoding layers with a pretrained BERT base model (cased), and fine-tune its later layers for 5 epochs, using a mean squared error loss function and default hyperparameters. The model is fine-tuned on just the CompLex corpus.
+Multi-Task Deep Neural Network (MT-DNN) proposed by \citet{liu2019multi} offers state-of-the-art results for multiple NLU tasks by incorporating benefits of both multi-task learning and language model pre-training. We are able to initialize MT-DNN's shared text encoding layers with a pre-trained BERT base model (cased), and fine-tune its later layers for 5 epochs, using a mean squared error loss function and default hyperparameters. The model is fine-tuned on just the CompLex corpus.
 
 \subsubsection{Input Layer}
 
-Data is fed to the model's input layer in \textit{PremiseAndOneHypothesis} format, premise and hypothesis being sentence and target word (or MWE), respectively. The data is preprocessed by a BERT tokenizer, backed by HuggingFace \citep{wolf_etal_2020_transformers}.
+Data is fed to the model's input layer in \textit{PremiseAndOneHypothesis} format, premise and hypothesis being sentence and target word (or MWE), respectively. The data is preprocessed by a BERT tokenizer, backed by HuggingFace \citep{wolf2020transformers}.
 
 \subsubsection{Output Layer}
 
@@ -256,7 +259,7 @@ We present the performances of \texttt{BigGreen}'s system on each subtask in Tab
 
 \label{sec:performance}
 
-For feature selection, we find success in selecting the top-300 features by mutual information \textit{and} removing quasi-constant features. The pruned feature set is passed to our wrapper/embedded methods and a variety of regressors for model comparison. We find an XGBoost model (with hyperparameters tuned via grid search) to excel consistently for the single word subtask. Performances are shown in Table \ref{tab:single-word-results}, where we rank in the top 15\% by Pearson correlation. 
+For feature selection, we find success in selecting the top-300 features by mutual information \textit{and} removing quasi-constant features. The pruned feature set is passed to our wrapper/embedded methods and a variety of regressors for model comparison. We find an XGBoost regressor (with hyperparameters tuned via grid search) to excel consistently for the single word subtask. Performances are shown in Table \ref{tab:single-word-results}, where we rank in the top 15\% by Pearson correlation. 
 
 For the MWE subtask, performances are reported in Table \ref{tab:multi-word-results}. Note that our submitted predictions differ from post-competition predictions. We \textit{previously} used a training procedure resembling that for the single word subtask: (1) filter methods for feature selection, (2) XGBoost for regression, (3) ensembling with MT-DNN. We passed the entire MWE as input to our XGBoost and MT-DNN models. We hypothesize that the fewer number of training samples available for this subtask contributed to the prior procedure's lackluster performance. This inspired us to incorporate the predictive capabilities of our fitted single word subtask models by applying them \textit{independently} on the MWE's constituent head and tail words. This gives us predicted complexities for the head and tail words each, which when ensembled with the predictions of our MT-DNN model (that, mind you, is trained on the \textit{entire} MWE) yields superior results to those submitted to competition.
 
@@ -288,9 +291,9 @@ In total we consider 110 features, in addition to our multidimensional embedding
   \caption{\label{fig:head_3-9} Head 3-9 attention map for a random sample.}
 \end{figure}
 
-Attention maps have in previous works been assessed to demonstrate linguistic phenomena learned by a Transformer's specialized attention heads \citep{190509418, 190604341}. We extract attention maps from MT-DNN's underlying fine-tuned BERT architecture. For each sample in the single word test set, we obtain an attention map from each of the BERT base model's 144 attention heads (ie. 12 heads per 12 layers).
+Attention maps have in previous works been assessed to demonstrate linguistic phenomena learned by a Transformer's specialized attention heads \citep{voita2019analyzing, clark2019does}. We extract attention maps from MT-DNN's underlying fine-tuned BERT architecture. For each sample in the single word test set, we obtain an attention map from each of the BERT base model's 144 attention heads (ie. 12 heads per 12 layers).
 
-Based on the precedence given to term frequency features by the XGBoost$_\textit{full}$ model, we hypothesize that for certain attention heads, the degree to which BPEs attend to one another varies relative to their word's rarity in lexicon. This follows the findings of \citet{190509418}, who identify heads in which lesser frequent tokens are attended to semi-uniformly by a majority of sentence tokens. 
+Based on the precedence given to term frequency features by the XGBoost$_\textit{full}$ model, we hypothesize that for certain attention heads, the degree to which BPEs attend to one another varies relative to their word's rarity in lexicon. This follows the findings of \citet{voita2019analyzing}, who identify heads in which lesser frequent tokens are attended to semi-uniformly by a majority of sentence tokens. 
 
 To test our hypothesis, we estimate for each attention head the Pearson correlation between word frequency and average attention given to each word in the context.\footnote{We compute attention given to a \textit{word} as the sum of attention given to its constituent BPEs. We use the GBND corpus to extract word frequencies, though any large corpora would suffice.} As illustrated in Figure \ref{fig:head_correlations_tf}, we find multiple attention heads appearing to specialize at directing attention towards the most or least frequent words (depending on sign of the correlation). Vertical stripe patterns like that in Figure \ref{fig:head_3-9} emerge as a result of attention originating from a spectrum of tokens. The findings seem to affirm the fundamental relevancy of word frequency to lexical complexity prediction, corroborating our intuition.
 
@@ -298,7 +301,7 @@ To test our hypothesis, we estimate for each attention head the Pearson correlat
 
 In this paper, we report inspirations for a system submitted by \texttt{BigGreen} to LCP SharedTask 2021, performing reasonably well for the single word subtask by adapting ensemble methods upon feature engineering and feature learning-based models. We see potential in future deep learning approaches, acknowledging the need for complementary word frequency-based handcrafted features for the time being. We surpass our submitted results for the MWE subtask, by utilizing the predictive capabilities of our single word subtask models.
 
-Avenues for improvement include better data aggregation, as the relative lack of class 4,5 samples hurts Pearson correlation across extremely complex samples. An approach may involve synthetic data generation using SMOGN \citep{pmlrv74branco17a}. \citet{shardlow2020complex} acknowledge a reader's familiarity with a genre may affect perceived word complexity. However, the CompLex dataset lacks information on each annotator's expertise or background, which may offer valuable new insights.
+Avenues for improvement include better data aggregation, as the relative lack of class 4,5 samples hurts Pearson correlation across extremely complex samples. An approach may involve synthetic data generation using SMOGN \citep{branco2017smogn}. \citet{shardlow2020complex} acknowledge a reader's familiarity with a genre may affect perceived word complexity. However, the CompLex dataset lacks information on each annotator's expertise or background, which may offer valuable new insights.
 
 \bibliographystyle{acl_natbib}
 \bibliography{anthology,acl2021}
@@ -328,7 +331,7 @@ Here, we describe in greater detail the various features that were experimented 
 
 \texttt{num\_hyperyms}
 \begin{itemize}
-  \item Number of hyperyms associated with the target word. The target word is initially disambiguated using NLTK's implementation of the Lesk algorithm for Word Sense Disambiguation (WSD) \citep{10.1145318723.318728}, which finds the WordNet Synset with the highest number of overlapping words between the context and different definitions of each Synset.
+  \item Number of hyperyms associated with the target word. The target word is initially disambiguated using NLTK's implementation of the Lesk algorithm for Word Sense Disambiguation (WSD) \citep{lesk1986automatic}, which finds the WordNet Synset with the highest number of overlapping words between the context and different definitions of each Synset.
 \end{itemize}
 \texttt{num\_hyponyms}
 \begin{itemize}
@@ -392,7 +395,7 @@ Here, we describe in greater detail the various features that were experimented 
 
 \texttt{tf}
 \begin{itemize}
-  \item Target word term frequency. Note that all term frequency-based features are computed using Scikit-learn library's \texttt{CountVectorizer} \citep{scikitlearn}.
+  \item Target word term frequency. Note that all term frequency-based features are computed using Scikit-learn library's \texttt{CountVectorizer} \citep{pedregosa2011scikit}.
 \end{itemize}
 \texttt{tf\_lemma}
 \begin{itemize}
@@ -547,7 +550,7 @@ Here, we describe in greater detail the various features that were experimented 
 
 \texttt{ppl}
 \begin{itemize}
-  \item Perplexity metric, as defined by the Hugging Face library.\footnote{\url{https://huggingface.co/transformers/perplexity.html}} For each token in the context, we use a pretrained GPT-2 model to estimate the $\log$-likelihood of the token occurring \textit{given its preceding tokens}. A sliding-window approach is used to handle the large number of tokens in a context. The $\log$-likelihoods are averaged, and then exponentiated.
+  \item Perplexity metric, as defined by the Hugging Face library.\footnote{\url{https://huggingface.co/transformers/perplexity.html}} For each token in the context, we use a pre-trained GPT-2 model to estimate the $\log$-likelihood of the token occurring \textit{given its preceding tokens}. A sliding-window approach is used to handle the large number of tokens in a context. The $\log$-likelihoods are averaged, and then exponentiated.
 \end{itemize}
 \texttt{ppl\_aspect\_only}
 \begin{itemize}
