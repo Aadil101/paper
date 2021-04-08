@@ -269,7 +269,7 @@ For the MWE subtask, performances are reported in Table \ref{tab:multi-word-resu
   \centering
   \includegraphics[scale=0.3]{xgboost_feature_importances.png}
   \captionsetup{justification=centering}
-  \caption{\label{fig:xgboost_feature_importance} Feature importances for XGBoost$_\textit{full}$}
+  \caption{\label{fig:xgboost_feature_importance} Feature importances for XGBoost$_\textit{full}$. Definitions of the features are shown in Appendix A.}
 \end{figure}
 
 In total we consider 110 features, in addition to our multidimensional embedding-based features and $\log$-transformed features. We inspect the estimated feature importance scores produced by the XGBoost$_\textit{full}$ model to find that term frequency-based features (eg. unigrams, bigrams, trigrams) are of overwhelming importance (see Figure \ref{fig:xgboost_feature_importance}). This raises concern for whether the MT-DNN model too relies on term frequencies to make \textit{its} predictions, and if not, the linguistic features it may have learned upon fine-tuning. Of the remaining features having non-zero feature importances, most appear to be dimensions of a target word-based semantic feature (ie. GloVe or ELMo embeddings).
